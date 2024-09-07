@@ -8,8 +8,9 @@ import {
     BarChart2,
     ArrowRightLeft,
     HelpCircleIcon,
-    Expand
+    LogOut
 } from 'lucide-react'
+import { Button } from './ui/button'
 
 const navLinks = [
     {
@@ -56,7 +57,7 @@ const NavigationBar = () => {
 
         <div 
         onClick={() => setIsExpended(!isExpended)}
-        className='w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-12 flex items-center justify-center'>
+        className='w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-15 flex items-center justify-center'>
             <img src={RightArrow} className='w-[5px]'/>
         </div>
 
@@ -67,6 +68,11 @@ const NavigationBar = () => {
                 <item.icons/>
                 <span className={isExpended ? "block" : "hidden"}>{item.name}</span>
             </div>)}
+
+            <div className='flex space-x-3 p-2 absolute bottom-12'>
+                <LogOut />
+                <p className={isExpended ? "block" : "hidden"}>Logout</p>
+            </div>  
         </div>
     </motion.div>
   )
