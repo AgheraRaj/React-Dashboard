@@ -48,7 +48,7 @@ const NavigationBar = () => {
     <motion.div
     animate = {isExpended ? "Expended" : "nonExpended"}
     variants={variants}
-    className='px-10 py-12 flex flex-col border border-r w-1/5 h-screen relative'>
+    className={'py-12 flex flex-col border border-r w-1/5 h-screen relative' + (isExpended ? " px-10" : " items-center")}>
         <div className='flex space-x-3 items-center'>
             <img src={Logo}/>
             <span className={isExpended ? "block" : "hidden"}>Money Tracker</span>
@@ -65,7 +65,7 @@ const NavigationBar = () => {
             onClick={() => setactiveNavIndex(index)}
             >
                 <item.icons/>
-                <span>{item.name}</span>
+                <span className={isExpended ? "block" : "hidden"}>{item.name}</span>
             </div>)}
         </div>
     </motion.div>
