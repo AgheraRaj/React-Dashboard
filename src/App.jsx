@@ -1,22 +1,20 @@
-import React from 'react'
-import NavigationBar from './components/NavigationBar';
-import Dashboard from './components/Dashboard';
+import React from "react";
+import NavigationBar from "./components/NavigationBar";
+import Dashboard from "./components/Dashboard";
 
 const App = () => {
   return (
     <>
-      <div className='flex w-full'>
+      <div className="flex w-full">
         {/* Navbar */}
-        <NavigationBar/>
+        <NavigationBar />
         {/* Main Components */}
-        <main className='grow'>
-          <Dashboard/>
+        <main className="grow">
+          <Dashboard />
         </main>
-      
       </div>
     </>
-    
-  )
-}
+  );
+};
 
 export default App;
