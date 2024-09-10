@@ -58,7 +58,7 @@ const NavigationBar = () => {
 
       <div
         onClick={() => setIsExpended(!isExpended)}
-        className="w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-15 flex items-center justify-center"
+        className={"w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-15 flex items-center justify-center" + (isExpended ? " rotate-180" : " rotate-0")}
       >
         <img src={RightArrow} className="w-[5px]" />
       </div>
