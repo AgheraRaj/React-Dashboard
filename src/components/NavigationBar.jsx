@@ -10,7 +10,6 @@ import {
     HelpCircleIcon,
     LogOut
 } from 'lucide-react'
-import { Button } from './ui/button'
 
 const navLinks = [
     {
