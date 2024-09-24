@@ -1,18 +1,14 @@
 import React from "react";
-import NavigationBar from "./components/NavigationBar";
 import Dashboard from "./components/Dashboard";
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
 
 const App = () => {
   return (
     <>
-      <div className="flex w-full">
-        {/* Navbar */}
-        <NavigationBar />
-        {/* Main Components */}
-        <main className="grow">
-          <Dashboard />
-        </main>
-      </div>
+      <Sidebar />
+      <Navbar />
+      <Dashboard />
     </>
   );
 };

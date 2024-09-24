@@ -4,11 +4,10 @@ import RightArrow from "./../assets/icons/rightArrow.svg";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
-  Clock3,
-  BarChart2,
+  Layers3,
+  BriefcaseBusiness,
+  PencilRuler,
   ArrowRightLeft,
-  HelpCircleIcon,
-  LogOut,
 } from "lucide-react";
 
 const navLinks = [
@@ -17,20 +16,20 @@ const navLinks = [
     icons: LayoutDashboard,
   },
   {
-    name: "Activity",
-    icons: Clock3,
+    name: "Stack holder",
+    icons: Layers3,
   },
   {
-    name: "Analytics",
-    icons: BarChart2,
+    name: "Jobs",
+    icons: BriefcaseBusiness,
+  },
+  {
+    name: "Skills",
+    icons: PencilRuler,
   },
   {
     name: "Transaction",
     icons: ArrowRightLeft,
-  },
-  {
-    name: "Help Center",
-    icons: HelpCircleIcon,
   },
 ];
 
@@ -38,7 +37,7 @@ const variants = {
   Expanded: { width: "20%" },
   nonExpended: { width: "5%" },
 };
-const NavigationBar = () => {
+const Sidebar = () => {
   const [activeNavIndex, setactiveNavIndex] = useState(0);
   const [isExpended, setIsExpended] = useState(true);
 
@@ -58,7 +57,7 @@ const NavigationBar = () => {
 
       <div
         onClick={() => setIsExpended(!isExpended)}
-        className={"w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-15 flex items-center justify-center" + (isExpended ? " rotate-180" : " rotate-0")}
+        className={"w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-20 flex items-center justify-center" + (isExpended ? " rotate-180" : " rotate-0")}
       >
         <img src={RightArrow} className="w-[5px]" />
       </div>
@@ -80,13 +79,13 @@ const NavigationBar = () => {
           </div>
         ))}
 
-        <div className="flex space-x-3 p-2 absolute bottom-12">
+        {/* <div className="flex space-x-3 p-2 absolute bottom-12">
           <LogOut />
           <p className={isExpended ? "block" : "hidden"}>Logout</p>
-        </div>
+        </div> */}
       </div>
     </motion.div>
   );
 };
 
-export default NavigationBar;
+export default Sidebar;
