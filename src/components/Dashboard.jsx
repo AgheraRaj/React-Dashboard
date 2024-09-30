@@ -1,11 +1,6 @@
-import React, { Children } from "react";
 import Chart from "./Chart";
 
-
-
 const Dashboard = () => {
-
-
   return (
     <div className="flex flex-col space-y-6 py-12 px-14">
       <h2>Dashboard</h2>
