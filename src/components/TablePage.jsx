@@ -1,3 +1,5 @@
+// 
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -14,8 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/Input"; // Adjusted import path
-import { Button } from "../ui/button";
+import { Input } from "./ui/input";
 
 // Define the columns for the table
 const columns = [
@@ -28,29 +29,24 @@ const columns = [
     header: "Username",
   },
   {
+    accessorKey: "firstname",
+    header: "First Name",
+  },
+  {
+    accessorKey: "lastname",
+    header: "Last Name",
+  },
+  {
     accessorKey: "email",
     header: "Email",
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "contact",
+    header: "Contact",
   },
   {
     accessorKey: "role",
     header: "Role",
-  },
-  {
-    accessorKey: "viewprofile",
-    header: "",
-    // Add the button inside the 'cell' property
-    cell: ({ row }) => (
-      <Button
-        onClick={() => alert(`Viewing profile of ${row.original.username}`)}
-        variant="primary"
-      >
-        View Profile
-      </Button>
-    ),
   },
 ];
 
@@ -63,7 +59,7 @@ const DataTable = ({ columns, data }) => {
   });
 
   return (
-    <div className="mx-10 h-screen">
+    <>
       <div className="flex w-1/4 mb-4">
         <Input placeholder="Search..." />
       </div>
@@ -115,7 +111,7 @@ const DataTable = ({ columns, data }) => {
           </TableBody>
         </Table>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -124,24 +120,28 @@ async function getData() {
   return Promise.resolve([
     {
       no: "1",
-      username: "Rajanvas",
+      username: "johndoe",
+      firstname: "John",
+      lastname: "Doe",
       email: "johndoe@example.com",
-      status: "active",
+      contact: "1234567890",
       role: "Admin",
     },
     {
       no: "2",
-      username: "Rajanvas",
-      email: "johndoe@example.com",
-      status: "active",
-      role: "Admin",
+      username: "janedoe",
+      firstname: "Jane",
+      lastname: "Doe",
+      email: "janedoe@example.com",
+      contact: "0987654321",
+      role: "User",
     },
     // Add more data as needed
   ]);
 }
 
 // Main Page component
-const Users = () => {
+const TablePage = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -160,4 +160,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default TablePage;
