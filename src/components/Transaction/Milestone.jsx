@@ -55,7 +55,7 @@ const DataTable = ({ columns, data }) => {
   return (
     <div className="mx-10 h-screen">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4 text-[#FF8C8C]">Milestone</h1>
+        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Milestone</h1>
         <div className="flex w-1/4 mb-4">
           <Input placeholder="Search..." />
         </div>

@@ -51,7 +51,7 @@ const Navbar = () => {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink>
-                <Link to="">Dashboard</Link>
+                <Link to="/">Dashboard</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

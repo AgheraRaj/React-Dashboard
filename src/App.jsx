@@ -2,10 +2,11 @@ import React from "react";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import { Outlet } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Outlet } from "react-router-dom";
 
 const App = () => {
+
 
   return (
     <div className="flex h-screen">

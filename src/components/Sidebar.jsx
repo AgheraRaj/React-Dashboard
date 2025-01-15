@@ -17,37 +17,40 @@ const navLinks = [
   {
     name: "Dashboard",
     icons: LayoutDashboard,
-    path: "",
+    path: "/",
   },
   {
     name: "StackHolder",
     icons: Layers3,
+    path: "#",
     subLinks: [
-      { name: "Employee", path: "/StackHolder/employee" },
-      { name: "Users", path: "/StackHolder/users" },
+      { name: "Employee", path: "StackHolder/employee" },
+      { name: "Users", path: "StackHolder/users" },
     ],
   },
   {
     name: "Jobs",
     icons: BriefcaseBusiness,
+    path: "#",
     subLinks: [
-      { name: "All Jobs", path: "/jobs/alljobs" },
-      { name: "Proposals", path: "/jobs/proposals" },
-      { name: "Contracts", path: "/jobs/contracts" },
+      { name: "All Jobs", path: "jobs/alljobs" },
+      { name: "Proposals", path: "jobs/proposals" },
+      { name: "Contracts", path: "jobs/contracts" },
     ],
   },
   {
     name: "Skills",
     icons: PencilRuler,
-    path: "/skills",
+    path: "skills",
   },
   {
     name: "Transaction",
     icons: ArrowRightLeft,
+    path: "#",
     subLinks: [
-      { name: "All Transactions", path: "/transaction/alltransactions" },
-      { name: "Invoice", path: "/transaction/invoice" },
-      { name: "Milestone", path: "/transaction/milestone" },
+      { name: "All Transactions", path: "transaction/alltransactions" },
+      { name: "Invoice", path: "transaction/invoice" },
+      { name: "Milestone", path: "transaction/milestone" },
     ],
   },
 ];
@@ -91,7 +94,7 @@ const Sidebar = () => {
           }
         }}
         className={
-          "w-5 h-5 rounded-full bg-[#FF8C8C] absolute -right-[10.5px] top-6 flex items-center justify-center" +
+          "w-5 h-5 rounded-full bg-indigo-700 absolute -right-[10.5px] top-6 flex items-center justify-center" +
           (isExpended ? " rotate-180" : " rotate-0")
         }
       >
@@ -107,7 +110,7 @@ const Sidebar = () => {
                 className={
                   "flex space-x-3 p-2 rounded" +
                   (activeNavIndex === index
-                    ? " bg-[#FF8C8C] text-white font-semibold"
+                    ? " bg-indigo-700 text-white font-semibold"
                     : " ")
                 }
                 onClick={() => {
