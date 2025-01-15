@@ -9,7 +9,6 @@ function Login() {
 
   const handleLogin = () => {
     if (username === "admin" && password === "password") {
-      alert("Login successful!");
       localStorage.setItem("isLoggedIn", "true");
       navigate("/"); 
       window.location.reload(); 
