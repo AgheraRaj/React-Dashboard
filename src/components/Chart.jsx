@@ -30,7 +30,7 @@ export const options = {
     },
     title: {
       display: true,
-      text: "Your Expenses",
+      text: "Web Insight",
     },
   },
 };
@@ -54,13 +54,13 @@ export const data = {
   labels,
   datasets: [
     {
-      label: "Amount of money you spend",
+      label: "Active Users Per Month",
       data: [
         10000, 12000, 15000, 12000, 14000, 20000, 12000, 14000, 17000, 30000,
         12000, 4000,
       ],
-      borderColor: "rgb(255, 99, 132)",
-      backgroundColor: "rgba(255, 99, 132, 0.5)",
+      borderColor: "#312E81",
+      backgroundColor: "#4338CA",
     },
   ],
 };
