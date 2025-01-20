@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import {
   flexRender,
@@ -14,11 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/Input"; // Adjusted import path
+import { Input } from "@/components/ui/Input";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
 
 // Define the columns for the table
-const columns = [
+const getColumns = (navigate) => [
   {
     accessorKey: "no",
     header: "No.",
@@ -42,10 +41,9 @@ const columns = [
   {
     accessorKey: "viewprofile",
     header: "",
-    // Add the button inside the 'cell' property
     cell: ({ row }) => (
       <Button
-        onClick={() => alert(`Viewing profile of ${row.original.username}`)}
+        onClick={() => navigate("/StackHolder/users/viewprofile")}
         variant="primary"
       >
         View Profile
@@ -134,18 +132,18 @@ async function getData() {
     },
     {
       no: "2",
-      username: "Rajanvas",
-      email: "johndoe@example.com",
+      username: "Jane Doe",
+      email: "janedoe@example.com",
       status: "active",
-      role: "Admin",
+      role: "User",
     },
-    // Add more data as needed
   ]);
 }
 
 // Main Page component
 const Users = () => {
   const [data, setData] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
@@ -155,6 +153,8 @@ const Users = () => {
 
     fetchData();
   }, []);
+
+  const columns = getColumns(navigate);
 
   return (
     <div className="container mx-auto py-10">

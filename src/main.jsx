@@ -1,4 +1,4 @@
-import { StrictMode} from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -14,25 +14,31 @@ import Invoice from "./components/Transaction/Invoice";
 import Milestone from "./components/Transaction/Milestone";
 import Employee from "./components/StackeHolder/Employee";
 import Users from "./components/StackeHolder/Users";
+import Viewjob from "./components/view-pages/Viewjob";
+import Viewprofile from "./components/view-pages/Viewprofile";
 
 let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: isLoggedIn ? <App /> : <Login/>,
+    element: isLoggedIn ? <App /> : <Login />,
     children: [
       { path: "/", element: <Dashboard /> },
       { path: "jobs/alljobs", element: <AllJobs /> },
       { path: "jobs/proposals", element: <Proposals /> },
       { path: "jobs/contracts", element: <Contracts /> },
-      { path: "skills", element: <Skills /> },
+      {
+        path: "skills",
+        element: <Skills />,
+      },
+      { path: "skills/viewjob", element: <Viewjob /> }, 
       { path: "transaction/alltransactions", element: <AllTransactions /> },
       { path: "transaction/invoice", element: <Invoice /> },
       { path: "transaction/milestone", element: <Milestone /> },
       { path: "StackHolder/employee", element: <Employee /> },
       { path: "StackHolder/users", element: <Users /> },
+      {path: "StackHolder/users/viewprofile", element: <Viewprofile/>}
     ],
   },
 ]);

@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-
+import { useNavigate } from "react-router-dom";
 
 // Define the columns for the table
-const columns = [
+const createColumns = (navigate) => [
   {
     accessorKey: "no",
     header: "No.",
@@ -31,12 +31,8 @@ const columns = [
   {
     accessorKey: "relatedjob",
     header: "Related Job",
-    // Add the button inside the 'cell' property
     cell: ({ row }) => (
-      <Button
-        onClick={() => alert(`Viewing job for ${row.original.username}`)}
-        variant="primary"
-      >
+      <Button onClick={() => navigate("/skills/viewjob")} variant="primary">
         View Job
       </Button>
     ),
@@ -129,6 +125,7 @@ async function getData() {
 // Main Page component
 const Skills = () => {
   const [data, setData] = useState([]);
+  const navigate = useNavigate(); // Initialize `useNavigate`
 
   useEffect(() => {
     async function fetchData() {
@@ -138,6 +135,8 @@ const Skills = () => {
 
     fetchData();
   }, []);
+
+  const columns = createColumns(navigate); // Pass `navigate` to columns
 
   return (
     <div className="container mx-auto py-10">
