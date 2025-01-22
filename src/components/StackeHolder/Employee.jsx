@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/Input"; // Adjusted import path
+import { Input } from "@/components/ui/Input";
 
 // Define the columns for the table
 const columns = [
@@ -117,43 +117,49 @@ const DataTable = ({ columns, data }) => {
   );
 };
 
-// Fetch data asynchronously
+// Fetch data from the backend
 async function getData() {
-  return Promise.resolve([
-    {
-      no: "1",
-      username: "johndoe",
-      firstname: "John",
-      lastname: "Doe",
-      email: "johndoe@example.com",
-      contact: "1234567890",
-      role: "Admin",
-    },
-    {
-      no: "2",
-      username: "janedoe",
-      firstname: "Jane",
-      lastname: "Doe",
-      email: "janedoe@example.com",
-      contact: "0987654321",
-      role: "User",
-    },
-    // Add more data as needed
-  ]);
+  try {
+    const response = await fetch("https://api.example.com/employees"); // Replace with your API URL
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch data:", error.message);
+    return [];
+  }
 }
 
 // Main Page component
 const Employee = () => {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
-      const result = await getData();
-      setData(result);
+      try {
+        setLoading(true);
+        const result = await getData();
+        setData(result);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchData();
   }, []);
+
+  if (loading) {
+    return <div className="text-center">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="container mx-auto py-10">
