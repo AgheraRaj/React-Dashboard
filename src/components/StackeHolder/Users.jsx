@@ -120,24 +120,19 @@ const DataTable = ({ columns, data }) => {
   );
 };
 
-// Fetch data asynchronously
+// Fetch data from the backend
 async function getData() {
-  return Promise.resolve([
-    {
-      no: "1",
-      username: "Rajanvas",
-      email: "johndoe@example.com",
-      status: "active",
-      role: "Admin",
-    },
-    {
-      no: "2",
-      username: "Jane Doe",
-      email: "janedoe@example.com",
-      status: "active",
-      role: "User",
-    },
-  ]);
+  try {
+    const response = await fetch("http://192.168.1.14:3030/user_api/getAllUser"); 
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json(); 
+    return data; 
+  } catch (error) {
+    console.error("Failed to fetch data:", error);
+    return []; 
+  }
 }
 
 // Main Page component
@@ -147,8 +142,8 @@ const Users = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const result = await getData();
-      setData(result);
+      const result = await getData(); 
+      setData(result); 
     }
 
     fetchData();
@@ -164,3 +159,4 @@ const Users = () => {
 };
 
 export default Users;
+

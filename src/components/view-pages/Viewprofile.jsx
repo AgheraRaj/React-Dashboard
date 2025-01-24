@@ -1,106 +1,93 @@
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/Input"; // Assuming this component exists for form inputs
-import { Button } from "../ui/button"; // Assuming button component exists
+import React, { useEffect, useState } from "react";
 
-const ViewProfile = () => {
-  const [profile, setProfile] = useState(null);
+const Viewprofile = () => {
+  // const user = {
+  //   name: "John Doe",
+  //   email: "johndoe@example.com",
+  //   phone: "+1 234 567 890",
+  //   about: "I am a web developer passionate about building modern web apps.",
+  //   role: "Freelancer",
+  //   status: "accepted✅",
+  //   profilePicture:
+  //     "https://img.freepik.com/free-vector/tiktok-profile-picture-template_742173-4482.jpg?t=st=1737694326~exp=1737697926~hmac=628706551f208884edfb4b02acf83a36c191c0f98ef6e6a77227b5dcf0780f49&w=740",
+  // };
 
-  useEffect(() => {
-    // Fetching user data, simulating with mock data for now
-    const fetchProfileData = () => {
-      const mockProfileData = {
-        username: "Your Fiverr Name",
-        handle: "@harshllmalavla",
-        location: "India",
-        joinedDate: "June 2021",
-        preferredLanguages: "English, Hindi",
-        preferredWorkingHours: "9 AM - 6 PM",
-        profileImageUrl:
-          "https://media.istockphoto.com/id/1495088043/vector/user-profile-icon-avatar-or-person-icon-profile-picture-portrait-symbol-default-portrait.jpg?s=612x612&w=0&k=20&c=dhV2p1JwmloBTOaGAtaA3AW1KSnjsdMt7-U_3EZElZ0=", // Profile image URL
-        bannerImageUrl:
-          "https://png.pngtree.com/thumb_back/fh260/back_our/20190625/ourmid/pngtree-simple-small-fresh-watercolor-company-profile-ppt-background-image_260406.jpg", // Banner image URL
-        profileCompletion: 10, // Profile completion progress in percentage
-      };
+  const [user , setUser] = useState(null);
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null); 
 
-      setProfile(mockProfileData);
-    };
+  useEffect(()=>{
+    const fetchUserData = async()=>{
+      try {
+        const response = await fetch("http://192.168.1.14:3030/user_api/getUserByusername/{username}");
+        if(!response){
+          throw new Error("Failed to fetch user data");
+        }
 
-    fetchProfileData();
-  }, []);
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+    }
+    }
 
-  if (!profile) {
-    return <div>Loading...</div>; // Add loading state
-  }
+    fetchUserData();
+  },[])
+
+  if (loading) {
+    return <div className="text-center text-xl mt-10">Loading...</div>;
+}
+
+if (error) {
+    return <div className="text-center text-xl mt-10 text-red-500">{error}</div>;
+}
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-      {/* Profile Banner */}
-      <div className="relative">
-        <img
-          src={profile.bannerImageUrl}
-          alt="Banner"
-          className="w-full h-60 object-cover rounded-lg"
-        />
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <img
-            src={profile.profileImageUrl}
-            alt="Profile"
-            className="w-32 h-32 rounded-full border-4 border-white"
-          />
-        </div>
-      </div>
+    <div className="max-w-2xl mx-auto my-20 p-10 bg-white border border-gray-200 rounded-lg shadow-md text-center">
+      {/* Profile Picture */}
+      <img
+        src={user.profilePicture}
+        alt="Profile"
+        className="w-24 h-24 mx-auto rounded-full absolute top-10 left-[565px]"
+      />
 
-      {/* Profile Info */}
-      <div className="pt-32 space-y-4">
-        <h1 className="text-3xl font-semibold text-indigo-700">
-          {profile.username}
-        </h1>
-        <p className="text-lg text-gray-600">{profile.handle}</p>
-        <p className="text-sm text-gray-500">Located in {profile.location}</p>
-        <p className="text-sm text-gray-500">Joined in {profile.joinedDate}</p>
-
-        <div className="space-y-2 mt-6">
-          <h3 className="text-xl font-semibold">Preferred Languages</h3>
-          <p className="text-sm">{profile.preferredLanguages}</p>
+      <div className="mt-10">
+        {/* User Name */}
+        <h2 className="text-2xl font-bold text-gray-800">{user.username}</h2>
+        {/* User Details */}
+        <p className="text-sm text-gray-600 mt-2">
+          <strong>Role:</strong> {user.role}
+        </p>
+        <p className="text-sm text-gray-600">
+          <strong>Email:</strong> {user.email}
+        </p>
+        <p className="text-sm text-gray-600">
+          <strong>Phone:</strong> {user.phone}
+        </p>
+        <p className="text-sm text-gray-600">
+          <strong>About:</strong> {user.description}
+        </p>
+        <p className="text-sm text-gray-600">
+          <strong>Status:</strong> {user.status}
+        </p>
+        {/* Button */}
+        <div className="space-x-5">
+        <button className="mt-4 px-4 py-2 bg-indigo-700 text-white rounded">
+          Edit Profile
+        </button>
+        <button className="mt-4 px-4 py-2 bg-green-700 text-white rounded">
+          Acception
+        </button>
+        <button className="mt-4 px-4 py-2 bg-red-700 text-white rounded">
+          Rejection
+        </button>
         </div>
-
-        <div className="space-y-2 mt-6">
-          <h3 className="text-xl font-semibold">Preferred Working Hours</h3>
-          <p className="text-sm">{profile.preferredWorkingHours}</p>
-        </div>
-
-        {/* Profile Completion Progress */}
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold">Profile Completion</h3>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div
-              className="bg-indigo-500 h-2 rounded-full"
-              style={{ width: `${profile.profileCompletion}%` }}
-            ></div>
-          </div>
-          <p className="text-sm text-gray-600 mt-2">
-            {profile.profileCompletion}% completed
-          </p>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex space-x-4 mt-6">
-          <Button
-            variant="primary"
-            className="bg-indigo-700 text-white hover:bg-indigo-800 transition-colors duration-300"
-          >
-            Edit Profile
-          </Button>
-          <Button
-            variant="secondary"
-            className="bg-gray-300 text-gray-700 hover:bg-gray-400 transition-colors duration-300"
-          >
-            Preview Public Profile
-          </Button>
-        </div>
+        
       </div>
     </div>
   );
 };
 
-export default ViewProfile;
+export default Viewprofile;
