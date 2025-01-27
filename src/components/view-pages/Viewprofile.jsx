@@ -1,48 +1,54 @@
 import React, { useEffect, useState } from "react";
 
 const Viewprofile = () => {
-  // const user = {
-  //   name: "John Doe",
-  //   email: "johndoe@example.com",
-  //   phone: "+1 234 567 890",
-  //   about: "I am a web developer passionate about building modern web apps.",
-  //   role: "Freelancer",
-  //   status: "accepted✅",
-  //   profilePicture:
-  //     "https://img.freepik.com/free-vector/tiktok-profile-picture-template_742173-4482.jpg?t=st=1737694326~exp=1737697926~hmac=628706551f208884edfb4b02acf83a36c191c0f98ef6e6a77227b5dcf0780f49&w=740",
-  // };
+  const user = {
+    name: "John Doe",
+    email: "johndoe@example.com",
+    phone: "+1 234 567 890",
+    about: "I am a web developer passionate about building modern web apps.",
+    role: "Freelancer",
+    status: "accepted✅",
+    profilePicture:
+      "https://img.freepik.com/free-vector/tiktok-profile-picture-template_742173-4482.jpg?t=st=1737694326~exp=1737697926~hmac=628706551f208884edfb4b02acf83a36c191c0f98ef6e6a77227b5dcf0780f49&w=740",
+  };
 
-  const [user , setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
-  const [error, setError] = useState(null); 
+//   const [user , setUser] = useState(null);
+//   const [loading, setLoading] = useState(true); 
+//   const [error, setError] = useState(null); 
 
-  useEffect(()=>{
-    const fetchUserData = async()=>{
-      try {
-        const response = await fetch("http://192.168.1.14:3030/user_api/getUserByusername/{username}");
-        if(!response){
-          throw new Error("Failed to fetch user data");
-        }
+//   useEffect(()=>{
+//     const fetchUserData = async()=>{
+//       try {
+//         const response = await fetch("http://192.168.1.14:3030/user_api/getUserByusername/username");
+//         if(!response){
+//               throw new Error(`HTTP error! status: ${response.status}`);
+//         }
 
-        const data = await response.json();
-        setUser(data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-    }
-    }
+//         const data = await response.json();
+//         setUser(data);
+//       } catch (error) {
+//         setError(error.message);
+//       } finally {
+//         setLoading(false);
+//     }
+//     }
 
-    fetchUserData();
-  },[])
+//     fetchUserData();
+//   },[])
 
-  if (loading) {
-    return <div className="text-center text-xl mt-10">Loading...</div>;
-}
+// if (loading) {
+//   return (
+//     <div className="h-dvh flex justify-center items-center">Loading...</div>
+//   );
+// }
 
-if (error) {
-    return <div className="text-center text-xl mt-10 text-red-500">{error}</div>;
-}
+// if (error) {
+//   return (
+//     <div className="h-dvh flex justify-center items-center text-red-500">
+//       Error: {error}
+//     </div>
+//   );
+// }
 
   return (
     <div className="max-w-2xl mx-auto my-20 p-10 bg-white border border-gray-200 rounded-lg shadow-md text-center">

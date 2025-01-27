@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -14,42 +14,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 
-// Define the columns for the table
-const columns = [
-  {
-    accessorKey: "no",
-    header: "No.",
-  },
-  {
-    accessorKey: "username",
-    header: "Username",
-  },
-  {
-    accessorKey: "firstname",
-    header: "First Name",
-  },
-  {
-    accessorKey: "lastname",
-    header: "Last Name",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "contact",
-    header: "Contact",
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-  },
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+export const columns = [
+  { accessorKey: "no", header: "No." },
+  { accessorKey: "username", header: "Username" },
+  { accessorKey: "firstname", header: "First Name" },
+  { accessorKey: "lastname", header: "Last Name" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "contact", header: "Contact" },
+  { accessorKey: "role", header: "Role" },
 ];
 
-// DataTable component to render the table
-const DataTable = ({ columns, data }) => {
+export function DataTable({ columns, data }) {
   const table = useReactTable({
     data,
     columns,
@@ -57,14 +45,13 @@ const DataTable = ({ columns, data }) => {
   });
 
   return (
-    <div className="mx-10 h-screen">
+    <div className="mx-10">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold mb-4 text-indigo-700">Employee</h1>
         <div className="flex w-1/4 mb-4">
           <Input placeholder="Search..." />
         </div>
       </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -115,36 +102,40 @@ const DataTable = ({ columns, data }) => {
       </div>
     </div>
   );
-};
-
-// Fetch data from the backend
-async function getData() {
-  try {
-    const response = await fetch("https://api.example.com/employees"); // Replace with your API URL
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to fetch data:", error.message);
-    return [];
-  }
 }
 
-// Main Page component
-const Employee = () => {
+function Employee() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 8;
+
+  const paginatedData = data.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
   useEffect(() => {
     async function fetchData() {
       try {
-        setLoading(true);
-        const result = await getData();
-        setData(result);
-      } catch (err) {
-        setError(err.message);
+        const response = await fetch("http://192.168.0.155:3030/Users");
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const fetchedData = await response.json();
+        const dataWithIndex = fetchedData.map((item, index) => ({
+          ...item,
+          no: index + 1,
+        }));
+
+        setData(dataWithIndex);
+      } catch (error) {
+        console.error("Failed to fetch data:", error.message);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -154,18 +145,66 @@ const Employee = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center">Loading...</div>;
+    return (
+      <div className="h-dvh flex justify-center items-center">Loading...</div>
+    );
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error: {error}</div>;
+    return (
+      <div className="h-dvh flex justify-center items-center text-red-500">
+        Error: {error}
+      </div>
+    );
   }
+
+  const totalPages = Math.ceil(data.length / rowsPerPage);
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={paginatedData} />
+
+      {/* Pagination Component */}
+      <div className="flex justify-center mt-6">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              />
+            </PaginationItem>
+            {[...Array(totalPages)].map((_, pageIndex) => (
+              <PaginationItem key={pageIndex}>
+                <PaginationLink
+                  href="#"
+                  onClick={() => setCurrentPage(pageIndex + 1)}
+                  className={`${
+                    pageIndex + 1 === currentPage
+                      ? "bg-indigo-700 text-white"
+                      : ""
+                  }`}
+                >
+                  {pageIndex + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            {totalPages > 5 && <PaginationEllipsis />}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
-};
+}
 
 export default Employee;

@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -12,11 +14,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/Input";
-import { Button } from "../ui/button";
-import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 
-// Define the columns for the table
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
+
 const getColumns = (navigate) => [
   {
     accessorKey: "no",
@@ -52,8 +64,7 @@ const getColumns = (navigate) => [
   },
 ];
 
-// DataTable component to render the table
-const DataTable = ({ columns, data }) => {
+export function DataTable({ columns, data }) {
   const table = useReactTable({
     data,
     columns,
@@ -61,7 +72,7 @@ const DataTable = ({ columns, data }) => {
   });
 
   return (
-    <div className="mx-10 h-screen">
+    <div className="mx-10">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold mb-4 text-indigo-700">Users</h1>
         <div className="flex w-1/4 mb-4">
@@ -118,32 +129,44 @@ const DataTable = ({ columns, data }) => {
       </div>
     </div>
   );
-};
-
-// Fetch data from the backend
-async function getData() {
-  try {
-    const response = await fetch("http://192.168.1.14:3030/user_api/getAllUser"); 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const data = await response.json(); 
-    return data; 
-  } catch (error) {
-    console.error("Failed to fetch data:", error);
-    return []; 
-  }
 }
 
-// Main Page component
-const Users = () => {
+function Users() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 8;
+
+  const paginatedData = data.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   useEffect(() => {
     async function fetchData() {
-      const result = await getData(); 
-      setData(result); 
+      try {
+        const response = await fetch("http://192.168.0.155:3030/Users");
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const fetchedData = await response.json();
+        const dataWithIndex = fetchedData.map((item, index) => ({
+          ...item,
+          no: index + 1,
+        }));
+
+        setData(dataWithIndex);
+      } catch (error) {
+        console.error("Failed to fetch data:", error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchData();
@@ -151,12 +174,67 @@ const Users = () => {
 
   const columns = getColumns(navigate);
 
+  if (loading) {
+    return (
+      <div className="h-dvh flex justify-center items-center">Loading...</div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-dvh flex justify-center items-center text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
+
+  const totalPages = Math.ceil(data.length / rowsPerPage);
+
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={paginatedData} />
+
+      {/* Pagination Component */}
+      <div className="flex justify-center mt-6">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              />
+            </PaginationItem>
+            {[...Array(totalPages)].map((_, pageIndex) => (
+              <PaginationItem key={pageIndex}>
+                <PaginationLink
+                  href="#"
+                  onClick={() => setCurrentPage(pageIndex + 1)}
+                  className={`${
+                    pageIndex + 1 === currentPage
+                      ? "bg-indigo-700 text-white"
+                      : ""
+                  }`}
+                >
+                  {pageIndex + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            {totalPages > 5 && <PaginationEllipsis />}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
-};
+}
 
 export default Users;
-
