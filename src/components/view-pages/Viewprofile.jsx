@@ -1,54 +1,112 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const Viewprofile = () => {
-  const user = {
-    name: "John Doe",
-    email: "johndoe@example.com",
-    phone: "+1 234 567 890",
-    about: "I am a web developer passionate about building modern web apps.",
-    role: "Freelancer",
-    status: "accepted✅",
-    profilePicture:
-      "https://img.freepik.com/free-vector/tiktok-profile-picture-template_742173-4482.jpg?t=st=1737694326~exp=1737697926~hmac=628706551f208884edfb4b02acf83a36c191c0f98ef6e6a77227b5dcf0780f49&w=740",
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [showReasonInput, setShowReasonInput] = useState(false); 
+  const [rejectionReason, setRejectionReason] = useState(""); 
+
+  const location = useLocation();
+  const { username } = location.state || {};
+
+  useEffect(() => {
+    if (!username) {
+      setError("No username provided.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(
+          `http://192.168.0.156:3030/user_api/getUserByUsername/${username}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setUser(data);
+        setStatus(data.status); 
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [username]);
+
+  const handleAcception = async () => {
+    try {
+      const response = await fetch(
+        `http://192.168.0.156:3030/user_api/accept/${username}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "Accepted✅" }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to accept");
+      }
+
+      const result = await response.json();
+      setStatus(result.status);
+    } catch (error) {
+      console.error("Error accepting:", error.message);
+    }
   };
 
-//   const [user , setUser] = useState(null);
-//   const [loading, setLoading] = useState(true); 
-//   const [error, setError] = useState(null); 
+  const handleRejection = async () => {
+    setShowReasonInput(true); 
+  };
 
-//   useEffect(()=>{
-//     const fetchUserData = async()=>{
-//       try {
-//         const response = await fetch("http://192.168.1.14:3030/user_api/getUserByusername/username");
-//         if(!response){
-//               throw new Error(`HTTP error! status: ${response.status}`);
-//         }
+  const submitRejectionReason = async () => {
+    try {
+      const response = await fetch(
+        `http://192.168.0.156:3030/user_api/reject/${username}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "Rejected❌", reason: rejectionReason }),
+        }
+      );
 
-//         const data = await response.json();
-//         setUser(data);
-//       } catch (error) {
-//         setError(error.message);
-//       } finally {
-//         setLoading(false);
-//     }
-//     }
+      if (!response.ok) {
+        throw new Error("Failed to reject");
+      }
 
-//     fetchUserData();
-//   },[])
+      const result = await response.json();
+      setStatus(result.status);
+      setShowReasonInput(false); 
+    } catch (error) {
+      console.error("Error rejecting:", error.message);
+    }
+  };
 
-// if (loading) {
-//   return (
-//     <div className="h-dvh flex justify-center items-center">Loading...</div>
-//   );
-// }
+  if (loading) {
+    return (
+      <div className="h-dvh flex justify-center items-center">Loading...</div>
+    );
+  }
 
-// if (error) {
-//   return (
-//     <div className="h-dvh flex justify-center items-center text-red-500">
-//       Error: {error}
-//     </div>
-//   );
-// }
+  if (error) {
+    return (
+      <div className="h-dvh flex justify-center items-center text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto my-20 p-10 bg-white border border-gray-200 rounded-lg shadow-md text-center">
@@ -56,7 +114,7 @@ const Viewprofile = () => {
       <img
         src={user.profilePicture}
         alt="Profile"
-        className="w-24 h-24 mx-auto rounded-full absolute top-10 left-[565px]"
+        className="w-24 h-24 mx-auto rounded-full"
       />
 
       <div className="mt-10">
@@ -73,25 +131,49 @@ const Viewprofile = () => {
           <strong>Phone:</strong> {user.phone}
         </p>
         <p className="text-sm text-gray-600">
-          <strong>About:</strong> {user.description}
+          <strong>About:</strong> {user.about}
         </p>
         <p className="text-sm text-gray-600">
-          <strong>Status:</strong> {user.status}
+          <strong>Status:</strong> {status || "Pending..."}
         </p>
-        {/* Button */}
+
+        {/* Buttons */}
         <div className="space-x-5">
-        <button className="mt-4 px-4 py-2 bg-indigo-700 text-white rounded">
-          Edit Profile
-        </button>
-        <button className="mt-4 px-4 py-2 bg-green-700 text-white rounded">
-          Acception
-        </button>
-        <button className="mt-4 px-4 py-2 bg-red-700 text-white rounded">
-          Rejection
-        </button>
+          <button className="mt-4 px-4 py-2 bg-indigo-700 text-white rounded">
+            Edit Profile
+          </button>
+          <button
+            onClick={handleAcception}
+            className="mt-4 px-4 py-2 bg-green-700 text-white rounded"
+          >
+            Accept
+          </button>
+          <button
+            onClick={handleRejection}
+            className="mt-4 px-4 py-2 bg-red-700 text-white rounded"
+          >
+            Reject
+          </button>
         </div>
-        
       </div>
+
+      {/* Reason Input Field */}
+      {showReasonInput && (
+        <div className="mt-8">
+          <textarea
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Enter reason for rejection"
+            className="w-full border border-gray-300 rounded-lg p-2"
+          ></textarea>
+          <button
+            onClick={submitRejectionReason}
+            className="mt-4 px-4 py-2 bg-indigo-700 text-white rounded"
+          >
+            Submit Reason
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -55,7 +55,9 @@ const getColumns = (navigate) => [
     header: "",
     cell: ({ row }) => (
       <Button
-        onClick={() => navigate("/StackHolder/users/viewprofile")}
+        onClick={() => navigate(`/StackHolder/users/viewprofile`, {
+          state: { username: row.original.username },
+        })}
         variant="primary"
       >
         View Profile
@@ -148,7 +150,7 @@ function Users() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://192.168.0.155:3030/Users");
+        const response = await fetch("http://192.168.0.156:3030/user_api/getAllUser");
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
