@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 const Navbar = () => {
 
   const handleLogin = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     window.location.reload();
   };
 

@@ -17,7 +17,7 @@ import Users from "./components/StackeHolder/Users";
 import Viewjob from "./components/view-pages/Viewjob";
 import Viewprofile from "./components/view-pages/Viewprofile";
 
-let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+let isLoggedIn = sessionStorage.getItem("jwtToken");
 
 const router = createBrowserRouter([
   {

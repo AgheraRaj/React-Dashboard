@@ -33,31 +33,31 @@ export const columns = [
     header: "No.",
   },
   {
-    accessorKey: "ClientCompanynName",
+    accessorKey: "clientCompanyName",
     header: "Client Company Name",
   },
   {
-    accessorKey: "ClientName",
+    accessorKey: "clientName",
     header: "Client Name",
   },
   {
-    accessorKey: "FreelancerName",
+    accessorKey: "freelancerName",
     header: "Freelancer Name",
   },
   {
-    accessorKey: "FreelancerIdProof",
+    accessorKey: "freelancerIdProof",
     header: "Freelancer ID Proof",
   },
   {
-    accessorKey: "MilestoneTitle",
+    accessorKey: "milestoneTitle",
     header: "Milestone Title",
   },
   {
-    accessorKey: "MilestonePaymentAmount",
+    accessorKey: "milestonePaymentAmount",
     header: "Milestone Payment Amount",
   },
   {
-    accessorKey: "PortalCommission",
+    accessorKey: "portalCommission",
     header: "Portal Commission",
   },
   {
@@ -149,7 +149,18 @@ function Invoice() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://192.168.0.155:3030/Invoice/getAll");
+        const token = sessionStorage.getItem("jwtToken"); // Retrieve JWT token
+
+        if (!token) {
+          throw new Error("No token found. Please login again.");
+        }
+        const response = await fetch("http://192.168.0.155:3030/Invoice/getAll", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include JWT token
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -173,19 +184,21 @@ function Invoice() {
     fetchData();
   }, []);
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="h-dvh flex justify-center items-center">Loading...</div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-dvh flex justify-center items-center text-red-500">
-        Error: {error}
+      <div className="h-screen flex justify-center items-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-gray-600"></div>
       </div>
     );
-  }
+
+  if (error)
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
+          ⚠️ Error: {error}
+        </div>
+      </div>
+    );
 
   const totalPages = Math.ceil(data.length / rowsPerPage);
 

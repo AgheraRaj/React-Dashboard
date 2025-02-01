@@ -1,31 +1,10 @@
 "use client";
 
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 
@@ -36,23 +15,23 @@ const createColumns = (navigate) => [
   },
   {
     accessorKey: "skillName",
-    header: "Skill name",
+    header: "Skill Name",
   },
   {
-    accessorKey: "relatedjob",
+    accessorKey: "relatedJob",
     header: "Related Job",
     cell: ({ row }) => (
-      <Button onClick={() =>
-        navigate(`/skills/viewjob`, {
-          state: { skillName: row.original.skillName },
-        })
-      } variant="primary">
+      <Button
+        onClick={() =>
+          navigate(`/skills/viewjob`, { state: { skillName: row.original.skillName } })
+        }
+        variant="primary"
+      >
         View Job
       </Button>
     ),
   },
 ];
-
 
 export function DataTable({ columns, data }) {
   const table = useReactTable({
@@ -76,12 +55,7 @@ export function DataTable({ columns, data }) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -90,26 +64,15 @@ export function DataTable({ columns, data }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -125,34 +88,29 @@ function Skills() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); 
-
-  const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
   const rowsPerPage = 8;
-
-  const paginatedData = data.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://192.168.0.155:3030/Skills/skills");
+        const token = sessionStorage.getItem("jwtToken");
+        if (!token) throw new Error("No token found. Please log in again.");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const response = await fetch("http://192.168.0.155:3030/Skills/skills", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const fetchedData = await response.json();
-        const dataWithIndex = fetchedData.map((item, index) => ({
-          ...item,
-          no: index + 1,
-        }));
-
-        setData(dataWithIndex);
+        setData(fetchedData.map((item, index) => ({ ...item, no: index + 1 })));
       } catch (error) {
-        console.error("Failed to fetch data:", error.message);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -162,63 +120,30 @@ function Skills() {
     fetchData();
   }, []);
 
+  const paginatedData = data.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   const columns = createColumns(navigate);
 
-  if (loading) {
-    return (
-      <div className="h-dvh flex justify-center items-center">Loading...</div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-dvh flex justify-center items-center text-red-500">
-        Error: {error}
-      </div>
-    );
-  }
-
-  const totalPages = Math.ceil(data.length / rowsPerPage);
+  if (loading) return <div className="h-dvh flex justify-center items-center">Loading...</div>;
+  if (error) return <div className="h-dvh flex justify-center items-center text-red-500">Error: {error}</div>;
 
   return (
     <div className="container mx-auto py-10">
       <DataTable columns={columns} data={paginatedData} />
-
-      {/* Pagination Component */}
       <div className="flex justify-center mt-6">
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              />
+              <PaginationPrevious onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} />
             </PaginationItem>
-            {[...Array(totalPages)].map((_, pageIndex) => (
-              <PaginationItem key={pageIndex}>
-                <PaginationLink
-                  href="#"
-                  onClick={() => setCurrentPage(pageIndex + 1)}
-                  className={`${
-                    pageIndex + 1 === currentPage
-                      ? "bg-indigo-700 text-white"
-                      : ""
-                  }`}
-                >
-                  {pageIndex + 1}
+            {[...Array(Math.ceil(data.length / rowsPerPage))].map((_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink onClick={() => setCurrentPage(i + 1)} className={i + 1 === currentPage ? "bg-indigo-700 text-white" : ""}>
+                  {i + 1}
                 </PaginationLink>
               </PaginationItem>
             ))}
-            {totalPages > 5 && <PaginationEllipsis />}
             <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-              />
+              <PaginationNext onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(data.length / rowsPerPage)))} />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
