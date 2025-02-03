@@ -91,6 +91,7 @@ function Skills() {
   const navigate = useNavigate();
   const rowsPerPage = 8;
   const [currentPage, setCurrentPage] = useState(1);
+  const url = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     async function fetchData() {
@@ -98,7 +99,7 @@ function Skills() {
         const token = sessionStorage.getItem("jwtToken");
         if (!token) throw new Error("No token found. Please log in again.");
 
-        const response = await fetch("http://192.168.0.155:3030/Skills/skills", {
+        const response = await fetch(`${url}/Skills/skills`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

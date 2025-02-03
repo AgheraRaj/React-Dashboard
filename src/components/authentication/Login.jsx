@@ -7,9 +7,11 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const url = import.meta.env.VITE_API_URL;
+
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://192.168.0.155:3030/Login", {
+      const response = await fetch(`${url}/Login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

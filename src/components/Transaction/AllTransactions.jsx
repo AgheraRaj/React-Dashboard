@@ -142,6 +142,8 @@ function AllTransactions() {
     currentPage * rowsPerPage
   );
 
+  const url = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -150,7 +152,7 @@ function AllTransactions() {
         if (!token) {
           throw new Error("No token found. Please login again.");
         }
-        const response = await fetch("http://192.168.0.155:3030/Transaction/getAll", {
+        const response = await fetch(`${url}/Transaction/getAll`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

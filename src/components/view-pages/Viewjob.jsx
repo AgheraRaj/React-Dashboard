@@ -9,6 +9,8 @@ const Viewjob = () => {
   const location = useLocation();
   const { skillName } = location.state || {};
 
+  const url = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     if (!skillName) {
       setError("Skill name is missing");
@@ -25,7 +27,7 @@ const Viewjob = () => {
         }
 
         const response = await fetch(
-          `http://192.168.0.155:3030/jobs/job/skill/${skillName}`,
+          `${url}/jobs/job/skill/${skillName}`,
           {
             method: "GET",
             headers: {

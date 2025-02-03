@@ -11,6 +11,7 @@ const Viewprofile = () => {
 
   const location = useLocation();
   const { username } = location.state || {};
+  const url = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (!username) {
@@ -25,7 +26,7 @@ const Viewprofile = () => {
         if (!token) throw new Error("No token found. Please login again.");
 
         const response = await fetch(
-          `http://192.168.0.155:3030/user_api/getUserByUsername/${username}`,
+          `${url}/user_api/getUserByUsername/${username}`,
           {
             method: "GET",
             headers: {
@@ -56,7 +57,7 @@ const Viewprofile = () => {
       if (!token) throw new Error("No token found. Please login again.");
 
       const response = await fetch(
-        `http://192.168.0.155:3030/user_api/accept/${username}`,
+        `${url}/user_api/accept/${username}`,
         {
           method: "POST",
           headers: {
@@ -86,7 +87,7 @@ const Viewprofile = () => {
       if (!token) throw new Error("No token found. Please login again.");
 
       const response = await fetch(
-        `http://192.168.0.155:3030/user_api/reject/${username}`,
+        `${url}/user_api/reject/${username}`,
         {
           method: "POST",
           headers: {

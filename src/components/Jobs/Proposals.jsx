@@ -138,6 +138,8 @@ function Proposals() {
     currentPage * rowsPerPage
   );
 
+  const url = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -146,7 +148,7 @@ function Proposals() {
         if (!token) {
           throw new Error("No token found. Please login again.");
         }
-        const response = await fetch("http://192.168.0.155:3030/", {
+        const response = await fetch(`${url}/`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

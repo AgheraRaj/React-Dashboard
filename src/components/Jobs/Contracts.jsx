@@ -118,6 +118,8 @@ function Contracts() {
     currentPage * rowsPerPage
   );
 
+  const url = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -126,7 +128,7 @@ function Contracts() {
         if (!token) {
           throw new Error("No token found. Please login again.");
         }
-        const response = await fetch("http://192.168.0.155:3030/contract/", {
+        const response = await fetch(`${url}/contract/`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
