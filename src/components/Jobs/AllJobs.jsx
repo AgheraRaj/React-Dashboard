@@ -25,19 +25,72 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
+import { Button } from "../ui/button";
 
-const getColumns = (navigate) => [
+const getColumns = (handleEdit, handleDelete) => [
   { accessorKey: "no", header: "No." },
   { accessorKey: "title", header: "Title" },
   { accessorKey: "description", header: "Description" },
-  { accessorKey: "skills_required", header: "Skills Required" },
+  {
+    accessorKey: "skillsRequired",
+    header: "Skills Required",
+    cell: ({ getValue }) => {
+      const skills = getValue() || [];
+      return (
+        <div className="flex flex-wrap gap-2">
+          {skills.map((skill, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      );
+    },
+  },
   { accessorKey: "providers_name", header: "Providers Name" },
   { accessorKey: "providers_email", header: "Providers Email" },
   { accessorKey: "duration", header: "Duration" },
   { accessorKey: "amount", header: "Amount" },
+  {
+    header: "Actions",
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
+            <EllipsisVertical className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleEdit(row.original)}>
+            <Pencil className="h-4 w-4 mr-2" /> Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
+            <Trash2 className="h-4 w-4 mr-2 text-red-600" /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
 ];
 
-export function DataTable({ columns, data }) {
+export function DataTable({
+  columns,
+  data,
+  editingRowId,
+  formData,
+  handleChange,
+  handleSave,
+}) {
   const table = useReactTable({
     data,
     columns,
@@ -67,17 +120,45 @@ export function DataTable({ columns, data }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const columnId = cell.column.columnDef.accessorKey;
+                    const isEditing = editingRowId === row.original.id;
+                    return (
+                      <TableCell key={cell.id}>
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            value={formData[columnId] || ""}
+                            onChange={(e) => handleChange(e, columnId)}
+                          />
+                        ) : (
+                          flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell>
+                    {editingRowId === row.original.id && (
+                      <Button className="bg-indigo-700 text-white" onClick={handleSave} size="sm">
+                        Save
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -95,20 +176,126 @@ function AllJobs() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [formData, setFormData] = useState({});
   const navigate = useNavigate();
-
   const url = import.meta.env.VITE_API_URL;
+
+  const handleEdit = (rowData) => {
+    // console.log("Editing Row:", rowData); // Debugging log
+    setEditingRowId(rowData.id);
+    setFormData({ ...rowData }); // Ensure data is stored properly
+  };
+
+  const handleChange = (e, field) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  };
+
+  // const handleSave = async () => {
+  //   if (!editingRowId) return;
+  
+  //   try {
+  //     const token = sessionStorage.getItem("jwtToken");
+  
+  //     const response = await fetch(`${url}/jobs/updateJob/${editingRowId}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify(formData), // Ensure correct data is sent
+  //     });
+  
+  //     if (!response.ok) {
+  //       throw new Error("Failed to update job.");
+  //     }
+  
+  //     const updatedJob = await response.json(); // Get updated job from response
+  
+  //     setData((prevData) =>
+  //       prevData.map((job) => 
+  //         job.id === editingRowId ? { ...job, ...updatedJob } : job
+  //       )
+  //     );
+  
+  //     setEditingRowId(null);
+  //     setFormData({});
+  //   } catch (error) {
+  //     console.error("Edit failed:", error);
+  //   }
+  // };
+  
+
+  const handleSave = async () => {
+    if (!editingRowId) return;
+    
+    const token = sessionStorage.getItem("jwtToken");
+    if (!token) {
+      console.error("JWT Token is missing!");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`${url}/jobs/updateJob/${editingRowId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server Response:", errorText);
+        throw new Error("Failed to update job.");
+      }
+  
+      const updatedJob = await response.json();
+  
+      setData((prevData) =>
+        prevData.map((job) =>
+          job.id === editingRowId ? { ...job, ...updatedJob } : job
+        )
+      );
+  
+      setEditingRowId(null);
+      setFormData({});
+    } catch (error) {
+      console.error("Edit failed:", error);
+    }
+  };
+  
+
+
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
+
+    try {
+      const token = sessionStorage.getItem("jwtToken");
+      const response = await fetch(`${url}/jobs/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete job.");
+
+      setData((prevData) => prevData.filter((job) => job.id !== id));
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const token = sessionStorage.getItem("jwtToken");
-        if (!token) throw new Error("No token found. Please login again.");
-
         const response = await fetch(`${url}/jobs/Jobs`, {
           method: "GET",
           headers: {
@@ -117,10 +304,11 @@ function AllJobs() {
           },
         });
 
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
         const fetchedData = await response.json();
-        const indexedData = fetchedData.map((item, index) => ({ ...item, no: index + 1 }));
+        const indexedData = fetchedData.map((item, index) => ({
+          ...item,
+          no: index + 1,
+        }));
 
         setData(indexedData);
         setFilteredData(indexedData);
@@ -132,37 +320,22 @@ function AllJobs() {
     };
 
     fetchData();
-  }, []);
+  }, [url]);
 
-  // Update filtered results and suggestions as user types
   useEffect(() => {
-    if (searchTerm) {
-      const filtered = data.filter((job) =>
-        Object.values(job).some((value) =>
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = searchTerm
+      ? data.filter((job) =>
+          Object.values(job).some((value) =>
+            value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+          )
         )
-      );
+      : data;
 
-      setFilteredData(filtered);
-
-      // Generate suggestions based on any field as user types
-      const allFields = filtered.flatMap((job) =>
-        Object.keys(job).map((key) => `${job[key]}`).filter(Boolean)
-      );
-      const uniqueSuggestions = [...new Set(allFields)].slice(0, 5); // Limit to 5 suggestions
-      setSuggestions(uniqueSuggestions);
-    } else {
-      setSuggestions([]); // Clear suggestions if search term is empty
-    }
+    setFilteredData(filtered);
     setCurrentPage(1);
   }, [searchTerm, data]);
 
-  const handleSelectSuggestion = (suggestion) => {
-    setSearchTerm(suggestion);
-    setSuggestions([]); // Hide suggestions
-  };
-
-  const columns = getColumns(navigate);
+  const columns = getColumns(handleEdit, handleDelete);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * rowsPerPage,
@@ -171,86 +344,65 @@ function AllJobs() {
 
   return (
     <div className="container mx-auto py-10">
-      {/* Search Input with Autocomplete */}
-      <div className="flex justify-between items-center mb-4 mx-10 relative">
+      <div className="flex justify-between items-center mb-4 mx-10">
         <h1 className="text-2xl font-bold mb-4 text-indigo-700">All Jobs</h1>
-        <div className="relative">
-          <Input
-            className="w-72"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+        <Input
+          className="w-72"
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      {!loading && !error && (
+        <>
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            editingRowId={editingRowId}
+            formData={formData}
+            handleChange={handleChange}
+            handleSave={handleSave}
           />
-          {suggestions.length > 0 && (
-            <ul className="absolute z-10 bg-white shadow-lg border rounded-md mt-1 w-full">
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={index}
-                  className="p-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => handleSelectSuggestion(suggestion)}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
 
-      {/* Loading Indicator */}
-      {loading && (
-        <div className="h-screen flex justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-gray-600"></div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && !loading && (
-        <div className="h-screen flex justify-center items-center">
-          <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
-            ⚠️ Error: {error}
+          <div className="flex justify-center mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, pageIndex) => (
+                  <PaginationItem key={pageIndex}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageIndex + 1)}
+                      className={
+                        pageIndex + 1 === currentPage
+                          ? "bg-indigo-700 text-white"
+                          : ""
+                      }
+                    >
+                      {pageIndex + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                {totalPages > 5 && <PaginationEllipsis />}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
-        </div>
+        </>
       )}
-
-      {/* Data Table */}
-      {!loading && !error && <DataTable columns={columns} data={paginatedData} />}
-
-      {/* Pagination Component */}
-      <div className="flex justify-center mt-6">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              />
-            </PaginationItem>
-            {[...Array(totalPages)].map((_, pageIndex) => (
-              <PaginationItem key={pageIndex}>
-                <PaginationLink
-                  href="#"
-                  onClick={() => setCurrentPage(pageIndex + 1)}
-                  className={`${
-                    pageIndex + 1 === currentPage ? "bg-indigo-700 text-white" : ""
-                  }`}
-                >
-                  {pageIndex + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            {totalPages > 5 && <PaginationEllipsis />}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
     </div>
   );
 }

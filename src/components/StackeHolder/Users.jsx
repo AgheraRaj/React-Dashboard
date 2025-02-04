@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   flexRender,
   getCoreRowModel,
@@ -15,8 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
-
 import {
   Pagination,
   PaginationContent,
@@ -26,7 +26,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 
 const getColumns = (navigate) => [
@@ -53,7 +52,7 @@ const getColumns = (navigate) => [
   },
 ];
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, searchQuery, handleSearch }) {
   const table = useReactTable({
     data,
     columns,
@@ -62,6 +61,16 @@ export function DataTable({ columns, data }) {
 
   return (
     <div className="mx-10">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Users</h1>
+        <div className="flex w-1/4 mb-4">
+          <Input
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -83,10 +92,7 @@ export function DataTable({ columns, data }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -113,142 +119,122 @@ export function DataTable({ columns, data }) {
 
 function Users() {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Search input state
-  const [suggestions, setSuggestions] = useState([]); // Suggestions state
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
   const navigate = useNavigate();
 
   const url = import.meta.env.VITE_API_URL;
 
-  // Function to fetch filtered data when the search button is clicked
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const token = sessionStorage.getItem("jwtToken");
-      if (!token) throw new Error("No token found. Please login again.");
-
-      // API Call with search query
-      const response = await fetch(`${url}/user_api/getAllUser?keyword=${searchTerm}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const fetchedData = await response.json();
-      setData(fetchedData.map((item, index) => ({ ...item, no: index + 1 })));
-      setFilteredData(fetchedData);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch all users when the component mounts
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const token = sessionStorage.getItem("jwtToken");
+        if (!token) throw new Error("No token found. Please login again.");
+
+        const response = await fetch(`${url}/user_api/getAllUser`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const fetchedData = await response.json();
+        const dataWithIndex = fetchedData.map((item, index) => ({
+          ...item,
+          no: index + 1,
+        }));
+
+        setData(dataWithIndex);
+      } catch (error) {
+        console.error("Failed to fetch data:", error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchData();
   }, []);
 
-  // Update filtered results and suggestions as user types
-  useEffect(() => {
-    if (searchTerm) {
-      // Filter data based on the search term across multiple fields
-      const filtered = data.filter((user) =>
-        Object.values(user).some((value) =>
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-
-      setFilteredData(filtered);
-
-      // Generate suggestions from all fields (username, email, status, role)
-      const allFields = filtered.flatMap((user) =>
-        Object.keys(user).map((key) => `${user[key]}`).filter(Boolean)
-      );
-      const uniqueSuggestions = [...new Set(allFields)].slice(0, 5); // Limit to 5 suggestions
-      setSuggestions(uniqueSuggestions);
+  const handleSearch = async (value) => {
+    setSearchQuery(value);
+    if (value.length >= 1) {
+      try {
+        const token = sessionStorage.getItem("jwtToken");
+        const response = await fetch(`${url}/user_api/search?keyword=${value}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) throw new Error("Search request failed");
+  
+        const result = await response.json();
+        // Add index to the search result
+        const resultWithIndex = result.map((item, index) => ({
+          ...item,
+          no: index + 1, // Ensure the index is added here
+        }));
+  
+        setData(resultWithIndex);
+      } catch (error) {
+        console.error("Error searching:", error);
+      }
     } else {
-      setSuggestions([]); // Clear suggestions if search term is empty
-      setFilteredData(data); // Reset filtered data if search term is empty
+      setSearchQuery("");
+      // Reset the data to include the index when search query is empty
+      const dataWithIndex = data.map((item, index) => ({
+        ...item,
+        no: index + 1,
+      }));
+      setData(dataWithIndex);
     }
-    setCurrentPage(1); // Reset to first page when search term changes
-  }, [searchTerm, data]);
-
-  const handleSelectSuggestion = (suggestion) => {
-    setSearchTerm(suggestion);
-    setSuggestions([]); // Hide suggestions
   };
+  
 
-  const columns = getColumns(navigate);
+  if (loading)
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-gray-600"></div>
+      </div>
+    );
 
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-  const paginatedData = filteredData.slice(
+  if (error)
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
+          ⚠️ Error: {error}
+        </div>
+      </div>
+    );
+
+  const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
 
+  const totalPages = Math.ceil(data.length / rowsPerPage);
+
+  // Define columns here
+  const columns = getColumns(navigate);
+
   return (
     <div className="container mx-auto py-10">
-      {/* Search Input and Button */}
-      <div className="flex justify-between items-center mb-4 mx-10 relative">
-        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Users</h1>
-        <div className="relative">
-          <Input
-            className="w-72"
-            placeholder="Search by username, email, status, role..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {suggestions.length > 0 && (
-            <ul className="absolute z-10 bg-white shadow-lg border rounded-md mt-1 w-full">
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={index}
-                  className="p-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => handleSelectSuggestion(suggestion)}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      <DataTable columns={columns} data={paginatedData} searchQuery={searchQuery} handleSearch={handleSearch} />
 
-      {/* Loading Indicator */}
-      {loading && (
-        <div className="h-screen flex justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-gray-600"></div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="h-screen flex justify-center items-center">
-          <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
-            ⚠️ Error: {error}
-          </div>
-        </div>
-      )}
-
-      {/* Data Table */}
-      {!loading && <DataTable columns={columns} data={paginatedData} />}
-
-      {/* Pagination Component */}
       <div className="flex justify-center mt-6">
         <Pagination>
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                href="#"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               />
@@ -256,11 +242,8 @@ function Users() {
             {[...Array(totalPages)].map((_, pageIndex) => (
               <PaginationItem key={pageIndex}>
                 <PaginationLink
-                  href="#"
                   onClick={() => setCurrentPage(pageIndex + 1)}
-                  className={`${
-                    pageIndex + 1 === currentPage ? "bg-indigo-700 text-white" : ""
-                  }`}
+                  className={pageIndex + 1 === currentPage ? "bg-indigo-700 text-white" : ""}
                 >
                   {pageIndex + 1}
                 </PaginationLink>
@@ -269,7 +252,6 @@ function Users() {
             {totalPages > 5 && <PaginationEllipsis />}
             <PaginationItem>
               <PaginationNext
-                href="#"
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
               />
@@ -280,5 +262,6 @@ function Users() {
     </div>
   );
 }
+
 
 export default Users;
