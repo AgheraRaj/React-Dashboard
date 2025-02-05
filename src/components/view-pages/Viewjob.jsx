@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const Viewjob = () => {
   const [jobs, setJobs] = useState([]);
@@ -20,22 +22,18 @@ const Viewjob = () => {
 
     const fetchJobData = async () => {
       try {
-        const token = sessionStorage.getItem("jwtToken"); // Retrieve JWT token
-
+        const token = sessionStorage.getItem("jwtToken");
         if (!token) {
           throw new Error("No token found. Please log in again.");
         }
 
-        const response = await fetch(
-          `${url}/jobs/job/skill/${skillName}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${url}/jobs/job/skill/${skillName}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -72,26 +70,27 @@ const Viewjob = () => {
   return (
     <div className="max-w-6xl mx-auto my-10 p-6 h-screen">
       <h1 className="text-2xl font-semibold text-gray-800 text-center">
-        Job Listings for <span className="text-indigo-600">{skillName}</span>
+        Job Listings for <span className="text-indigo-700">{skillName}</span>
       </h1>
 
       {jobs.length > 0 ? (
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job, index) => (
-            <div
-              key={index}
-              className="p-5 border rounded-md shadow-md bg-gray-50 hover:shadow-lg transition-all"
-            >
-              <h2 className="text-lg font-bold text-indigo-700">{job.title}</h2>
-              <p className="text-gray-600 mt-1">{job.description}</p>
-              <div className="mt-3 text-sm text-gray-700">
-                <p><strong>Amount:</strong> <span className="text-green-600">${job.amount}</span></p>
-                <p><strong>Duration:</strong> {job.duration}</p>
-              </div>
-              <button className="mt-4 w-full bg-indigo-700 text-white py-2 rounded-md hover:bg-indigo-800 transition">
-                Apply Now
-              </button>
-            </div>
+            <Card key={index} className="bg-gray-50 border border-gray-200 shadow-md hover:shadow-lg transition-all">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-indigo-700">{job.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">{job.description}</p>
+                <div className="mt-3 text-sm text-gray-700">
+                  <p><strong>Amount:</strong> <span className="text-green-600">${job.amount}</span></p>
+                  <p><strong>Duration:</strong> {job.duration}</p>
+                </div>
+                <Button className="mt-4 w-full bg-indigo-700 text-white hover:bg-indigo-800 transition">
+                  Apply Now
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : (

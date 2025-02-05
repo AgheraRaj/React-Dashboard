@@ -5,17 +5,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-
 import {
   Table,
   TableBody,
@@ -26,170 +15,133 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-
-import { Button } from "../ui/button";
-import { EllipsisVertical } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
+import { Button } from "../ui/button";
 
-const url = import.meta.env.VITE_API_URL;
+const getColumns = (handleEdit, handleDelete) => [
+  { accessorKey: "no", header: "No." },
+  { accessorKey: "username", header: "Username" },
+  { accessorKey: "firstname", header: "First Name" },
+  { accessorKey: "lastname", header: "Last Name" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "contact", header: "Contact" },
+  { accessorKey: "role", header: "Role" },
+  {
+    accessorKey: "actions",
+    header: "Actions",
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
+            <EllipsisVertical className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleEdit(row.original)}>
+            <Pencil className="h-4 w-4 mr-2" /> Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
+            <Trash2 className="h-4 w-4 mr-2 text-red-600" /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
+];
 
-export function DataTable({ data, onUpdate, onDelete }) {
-  const [editingRow, setEditingRow] = useState(null);
-  const [editData, setEditData] = useState({});
-
-  const handleEditClick = (row) => {
-    setEditingRow(row.no);
-    setEditData(row);
-  };
-
-  const handleInputChange = (e, field) => {
-    setEditData((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      const token = sessionStorage.getItem("jwtToken");
-      if (!token) throw new Error("No token found. Please login again.");
-
-      const response = await fetch(`${url}/update/${editData.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(editData),
-      });
-
-      if (!response.ok)
-        throw new Error(`HTTP error! Status: ${response.status}`);
-
-      onUpdate(editData);
-      setEditingRow(null);
-    } catch (error) {
-      console.error("Error updating data:", error.message);
-    }
-  };
-
-  const handleDelete = async (rowId) => {
-    try {
-      const token = sessionStorage.getItem("jwtToken");
-      if (!token) throw new Error("No token found. Please login again.");
-
-      const response = await fetch(`${url}/delete/${rowId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok)
-        throw new Error(`HTTP error! Status: ${response.status}`);
-
-      onDelete(rowId);
-    } catch (error) {
-      console.error("Error deleting data:", error.message);
-    }
-  };
-
-  const columns = [
-    { accessorKey: "no", header: "No." },
-    { accessorKey: "username", header: "Username" },
-    { accessorKey: "firstname", header: "First Name" },
-    { accessorKey: "lastname", header: "Last Name" },
-    { accessorKey: "email", header: "Email" },
-    { accessorKey: "contact", header: "Contact" },
-    { accessorKey: "role", header: "Role" },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost">
-              <EllipsisVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleEditClick(row.original)}>
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600"
-              onClick={() => handleDelete(row.original.id)}
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ];
+export function DataTable({
+  columns,
+  data,
+  editingRowId,
+  formData,
+  handleChange,
+  handleSave,
+}) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="mx-10">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Employee</h1>
-        <div className="flex w-1/4 mb-4">
-          <Input
-            placeholder="Search..."
-            // value={searchQuery}
-            // onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
-      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
-              {columns.map((col) => (
-                <TableHead key={col.accessorKey}>{col.header}</TableHead>
-              ))}
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
-            {data.length ? (
-              data.map((row) => (
-                <TableRow key={row.no}>
-                  {columns.map((col) => (
-                    <TableCell key={col.accessorKey}>
-                      {editingRow === row.no &&
-                      col.accessorKey !== "actions" ? (
-                        <Input
-                          value={editData[col.accessorKey] || ""}
-                          onChange={(e) =>
-                            handleInputChange(e, col.accessorKey)
-                          }
-                        />
-                      ) : col.accessorKey === "actions" ? (
-                        flexRender(col.cell, { row })
-                      ) : (
-                        row[col.accessorKey]
-                      )}
-                    </TableCell>
-                  ))}
-                  {editingRow === row.no && (
-                    <TableCell>
-                      <Button onClick={handleSave}>Save</Button>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const columnId = cell.column.columnDef.accessorKey;
+                    const isEditing = editingRowId === row.original.id;
+                    return (
+                      <TableCell key={cell.id}>
+                        {isEditing && columnId !== "no" && columnId !== "actions" ? (
+                          <Input
+                            type="text"
+                            value={formData[columnId] || ""}
+                            onChange={(e) => handleChange(e, columnId)}
+                          />
+                        ) : (
+                          flexRender(cell.column.columnDef.cell, cell.getContext())
+                        )}
+
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell>
+                    {editingRowId === row.original.id && (
                       <Button
-                        variant="ghost"
-                        onClick={() => setEditingRow(null)}
+                        className="bg-indigo-700 text-white"
+                        onClick={handleSave}
+                        size="sm"
                       >
-                        Cancel
+                        Save
                       </Button>
-                    </TableCell>
-                  )}
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="text-center py-4"
+                  className="h-24 text-center"
                 >
                   No results.
                 </TableCell>
@@ -204,20 +156,96 @@ export function DataTable({ data, onUpdate, onDelete }) {
 
 function Employee() {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8; // Adjust as needed
+  const rowsPerPage = 8;
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [formData, setFormData] = useState({});
+  const navigate = useNavigate();
+  const url = import.meta.env.VITE_API_URL;
 
-  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const handleEdit = (rowData) => {
+    // console.log("Editing Row:", rowData); // Debugging log
+    setEditingRowId(rowData.id);
+    setFormData({ ...rowData }); // Ensure data is stored properly
+  };
+
+  const handleChange = (e, field) => {
+
+    setFormData({ ...formData, [field]: e.target.value });
+
+  };
+
+  const handleSave = async () => {
+    if (!editingRowId) return;
+    
+    const token = sessionStorage.getItem("jwtToken");
+    if (!token) {
+      console.error("JWT Token is missing!");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`${url}/StackHolder/update/${editingRowId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server Response:", errorText);
+        throw new Error("Failed to update job.");
+      }
+  
+      const updatedJob = await response.json();
+  
+      setData((prevData) =>
+        prevData.map((job) =>
+          job.id === editingRowId ? { ...job, ...updatedJob } : job
+        )
+      );
+  
+      setEditingRowId(null);
+      setFormData({});
+    } catch (error) {
+      console.error("Edit failed:", error);
+    }
+  };
+
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
+
+    try {
+      const token = sessionStorage.getItem("jwtToken");
+      const response = await fetch(`${url}/StackHolder/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete job.");
+
+      setData((prevData) => prevData.filter((job) => job.id !== id));
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
+        setLoading(true);
         const token = sessionStorage.getItem("jwtToken");
-        if (!token) throw new Error("No token found. Please login again.");
-
-        const response = await fetch(`${url}/Users`, {
+        const response = await fetch(`${url}/StackHolder/Users`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -225,78 +253,107 @@ function Employee() {
           },
         });
 
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
         const fetchedData = await response.json();
-        setData(fetchedData.map((item, index) => ({ ...item, no: index + 1 })));
+        const indexedData = fetchedData.map((item, index) => ({
+          ...item,
+          no: index + 1,
+        }));
+
+        setData(indexedData);
+        setFilteredData(indexedData);
       } catch (error) {
-        console.error("Failed to fetch data:", error.message);
         setError(error.message);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchData();
-  }, []);
+  }, [url]);
 
-  const handleUpdate = (updatedRow) => {
-    setData((prev) => prev.map((row) => (row.id === updatedRow.id ? updatedRow : row)));
-  };
+  useEffect(() => {
+    const filtered = searchTerm
+      ? data.filter((job) =>
+        Object.values(job).some((value) =>
+          value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      )
+      : data;
 
-  const handleDelete = (rowId) => {
-    setData((prev) => prev.filter((row) => row.id !== rowId));
-  };
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, data]);
 
-  // Get the data for the current page
-  const paginatedData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const columns = getColumns(handleEdit, handleDelete);
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
-  return loading ? (
-    <div className="h-screen flex justify-center items-center">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-gray-600"></div>
-    </div>
-  ) : error ? (
-    <div className="h-screen flex justify-center items-center">
-      <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
-        ⚠️ Error: {error}
-      </div>
-    </div>
-  ) : (
+  return (
     <div className="container mx-auto py-10">
-      <DataTable data={paginatedData} onUpdate={handleUpdate} onDelete={handleDelete} />
-
-      <div className="flex justify-center mt-6">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              />
-            </PaginationItem>
-            {[...Array(totalPages)].map((_, pageIndex) => (
-              <PaginationItem key={pageIndex}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(pageIndex + 1)}
-                  className={pageIndex + 1 === currentPage ? "bg-indigo-700 text-white" : ""}
-                >
-                  {pageIndex + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            {totalPages > 5 && <PaginationEllipsis />}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      <div className="flex justify-between items-center mb-4 mx-10">
+        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Employee</h1>
+        <Input
+          className="w-72"
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
+      {!loading && !error && (
+        <>
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            editingRowId={editingRowId}
+            formData={formData}
+            handleChange={handleChange}
+            handleSave={handleSave}
+          />
+
+          <div className="flex justify-center mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, pageIndex) => (
+                  <PaginationItem key={pageIndex}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageIndex + 1)}
+                      className={
+                        pageIndex + 1 === currentPage
+                          ? "bg-indigo-700 text-white"
+                          : ""
+                      }
+                    >
+                      {pageIndex + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                {totalPages > 5 && <PaginationEllipsis />}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </>
+      )}
     </div>
   );
 }
-
 
 export default Employee;

@@ -62,6 +62,7 @@ const getColumns = (handleEdit, handleDelete) => [
   { accessorKey: "duration", header: "Duration" },
   { accessorKey: "amount", header: "Amount" },
   {
+    accessorKey: "actions",
     header: "Actions",
     cell: ({ row }) => (
       <DropdownMenu>
@@ -129,10 +130,16 @@ export function DataTable({
                     const isEditing = editingRowId === row.original.id;
                     return (
                       <TableCell key={cell.id}>
-                        {isEditing ? (
+                        {isEditing &&
+                        columnId !== "no" &&
+                        columnId !== "actions" ? (
                           <Input
                             type="text"
-                            value={formData[columnId] || ""}
+                            value={
+                              columnId === "skillsRequired"
+                                ? (formData.skillsRequired || []).join(", ")
+                                : formData[columnId] || ""
+                            }
                             onChange={(e) => handleChange(e, columnId)}
                           />
                         ) : (
@@ -146,7 +153,11 @@ export function DataTable({
                   })}
                   <TableCell>
                     {editingRowId === row.original.id && (
-                      <Button className="bg-indigo-700 text-white" onClick={handleSave} size="sm">
+                      <Button
+                        className="bg-indigo-700 text-white"
+                        onClick={handleSave}
+                        size="sm"
+                      >
                         Save
                       </Button>
                     )}
@@ -190,47 +201,20 @@ function AllJobs() {
   };
 
   const handleChange = (e, field) => {
-    setFormData({ ...formData, [field]: e.target.value });
+    if (field === "skillsRequired") {
+      // Convert comma-separated values into an array
+      setFormData({
+        ...formData,
+        [field]: e.target.value.split(",").map((skill) => skill.trim()),
+      });
+    } else {
+      setFormData({ ...formData, [field]: e.target.value });
+    }
   };
-
-  // const handleSave = async () => {
-  //   if (!editingRowId) return;
-  
-  //   try {
-  //     const token = sessionStorage.getItem("jwtToken");
-  
-  //     const response = await fetch(`${url}/jobs/updateJob/${editingRowId}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify(formData), // Ensure correct data is sent
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update job.");
-  //     }
-  
-  //     const updatedJob = await response.json(); // Get updated job from response
-  
-  //     setData((prevData) =>
-  //       prevData.map((job) => 
-  //         job.id === editingRowId ? { ...job, ...updatedJob } : job
-  //       )
-  //     );
-  
-  //     setEditingRowId(null);
-  //     setFormData({});
-  //   } catch (error) {
-  //     console.error("Edit failed:", error);
-  //   }
-  // };
-  
 
   const handleSave = async () => {
     if (!editingRowId) return;
-    
+  
     const token = sessionStorage.getItem("jwtToken");
     if (!token) {
       console.error("JWT Token is missing!");
@@ -244,7 +228,12 @@ function AllJobs() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          skillsRequired: Array.isArray(formData.skillsRequired)
+            ? formData.skillsRequired
+            : [], // Ensure it’s always an array
+        }),
       });
   
       if (!response.ok) {
@@ -269,14 +258,12 @@ function AllJobs() {
   };
   
 
-
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this job?")) return;
 
     try {
       const token = sessionStorage.getItem("jwtToken");
-      const response = await fetch(`${url}/jobs/delete/${id}`, {
+      const response = await fetch(`${url}/jobs/deleteJob/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
