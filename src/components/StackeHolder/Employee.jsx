@@ -33,6 +33,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 const getColumns = (handleEdit, handleDelete) => [
   { accessorKey: "no", header: "No." },
@@ -127,7 +130,6 @@ export function DataTable({
                   <TableCell>
                     {editingRowId === row.original.id && (
                       <Button
-                        className="bg-indigo-700 text-white"
                         onClick={handleSave}
                         size="sm"
                       >
@@ -164,6 +166,8 @@ function Employee() {
   const rowsPerPage = 8;
   const [editingRowId, setEditingRowId] = useState(null);
   const [formData, setFormData] = useState({});
+  const [newEmployee, setNewEmployee] = useState(null);
+  const [showTable, setShowTable] = useState(false);
   const navigate = useNavigate();
   const url = import.meta.env.VITE_API_URL;
 
@@ -181,13 +185,13 @@ function Employee() {
 
   const handleSave = async () => {
     if (!editingRowId) return;
-    
+
     const token = sessionStorage.getItem("jwtToken");
     if (!token) {
       console.error("JWT Token is missing!");
       return;
     }
-  
+
     try {
       const response = await fetch(`${url}/StackHolder/update/${editingRowId}`, {
         method: "PUT",
@@ -197,21 +201,21 @@ function Employee() {
         },
         body: JSON.stringify(formData),
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Server Response:", errorText);
         throw new Error("Failed to update job.");
       }
-  
+
       const updatedJob = await response.json();
-  
+
       setData((prevData) =>
         prevData.map((job) =>
           job.id === editingRowId ? { ...job, ...updatedJob } : job
         )
       );
-  
+
       setEditingRowId(null);
       setFormData({});
     } catch (error) {
@@ -237,6 +241,70 @@ function Employee() {
       setData((prevData) => prevData.filter((job) => job.id !== id));
     } catch (error) {
       console.error("Delete failed:", error);
+    }
+  };
+
+  const handleAdd = () => {
+    setNewEmployee({
+      username: "",
+      firstname: "",
+      lastname: "",
+      password: "",
+      email: "",
+      contact: "",
+    })
+
+    setShowTable(false);
+  };
+
+  const handleInputChange = (e, field) => {
+    setNewEmployee((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleAddSubmit = async (e) => {
+
+    e.preventDefault();
+    if (
+      !newEmployee.username ||
+      !newEmployee.firstname ||
+      !newEmployee.lastname ||
+      !newEmployee.password ||
+      !newEmployee.email ||
+      !newEmployee.contact ||
+      !newEmployee.role
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
+    setShowTable(true);
+
+
+    if (!newEmployee) return;
+    const token = sessionStorage.getItem("jwtToken");
+    if (!token) {
+      console.error("JWT Token is missing!");
+      return;
+    }
+    try {
+      const response = await fetch(`${url}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newEmployee),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to add employee.");
+      }
+      const addedEmployee = await response.json();
+      setData((prevData) => [...prevData, { ...addedEmployee, no: prevData.length + 1 }]);
+      setNewEmployee(null); // Reset the form
+      window.location.reload();
+    } catch (error) {
+      console.error("Add failed:", error);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -291,18 +359,97 @@ function Employee() {
     currentPage * rowsPerPage
   );
 
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-4 mx-10">
-        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Employee</h1>
-        <Input
-          className="w-72"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <h1 className="text-2xl font-bold mb-4 text-black">Employee</h1>
+        <div className="flex items-center space-x-4">
+          <Input
+            className="w-72"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Button onClick={handleAdd}>Add Employee</Button>
+        </div>
       </div>
-      {!loading && !error && (
+
+      {newEmployee && (
+        <div className="flex justify-center">
+          <Card className="w-3/4">
+            <CardHeader className="flex justify-center items-center">
+              <CardTitle>Add Employee</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form>
+                <div className="grid grid-cols-3 w-full items-center gap-4">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="username">Username</Label>
+                    <Input id="username" placeholder="johndoe123"
+                      value={newEmployee.username}
+                      onChange={(e) => handleInputChange(e, "username")}
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="firstname">First Name</Label>
+                    <Input id="firstname" placeholder="First Name"
+                      value={newEmployee.firstname}
+                      onChange={(e) => handleInputChange(e, "firstname")}
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="lastname">Last Name</Label>
+                    <Input id="lastname" placeholder="Last Name"
+                      value={newEmployee.lastname}
+                      onChange={(e) => handleInputChange(e, "lastname")}
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" placeholder="••••••"
+                      type="password"
+                      value={newEmployee.password}
+                      onChange={(e) => handleInputChange(e, "password")}
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" placeholder="Email"
+                      value={newEmployee.email}
+                      onChange={(e) => handleInputChange(e, "email")}
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="contact">Contact</Label>
+                    <Input id="contact" placeholder="Contact"
+                      value={newEmployee.contact}
+                      onChange={(e) => handleInputChange(e, "contact")}
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="role">Role</Label>
+                    <Select onValueChange={(value) => setNewEmployee((prev) => ({ ...prev, role: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ADMIN">ADMIN</SelectItem>
+                        <SelectItem value="EMPLOYEE">EMPLOYEE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+            <CardFooter className="flex justify-center items-center">
+              <Button onClick={handleAddSubmit}>Submit</Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
+
+      {!loading && !error && !newEmployee && (
         <>
           <DataTable
             columns={columns}
@@ -328,11 +475,6 @@ function Employee() {
                   <PaginationItem key={pageIndex}>
                     <PaginationLink
                       onClick={() => setCurrentPage(pageIndex + 1)}
-                      className={
-                        pageIndex + 1 === currentPage
-                          ? "bg-indigo-700 text-white"
-                          : ""
-                      }
                     >
                       {pageIndex + 1}
                     </PaginationLink>

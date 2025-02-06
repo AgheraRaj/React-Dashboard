@@ -10,17 +10,18 @@ const Viewprofile = () => {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const location = useLocation();
-  const { username } = location.state || {};
+  const username = location.state?.username || null;
   const url = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    if (!username) {
-      setError("No username provided.");
-      setLoading(false);
-      return;
-    }
+    if (!username) return;
 
     const fetchUserData = async () => {
+
+      setLoading(true);
+      setError(null);
+
+
       try {
         const token = sessionStorage.getItem("jwtToken");
         if (!token) throw new Error("No token found. Please login again.");

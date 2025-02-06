@@ -5,22 +5,21 @@ import { Button } from "@/components/ui/button";
 
 const Viewjob = () => {
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const location = useLocation();
-  const { skillName } = location.state || {};
+  const skillName = location.state?.skillName || null; // Avoid crash if undefined
 
   const url = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    if (!skillName) {
-      setError("Skill name is missing");
-      setLoading(false);
-      return;
-    }
+    if (!skillName) return; // Don't fetch if skillName is missing
 
     const fetchJobData = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
         const token = sessionStorage.getItem("jwtToken");
         if (!token) {
@@ -70,7 +69,7 @@ const Viewjob = () => {
   return (
     <div className="max-w-6xl mx-auto my-10 p-6 h-screen">
       <h1 className="text-2xl font-semibold text-gray-800 text-center">
-        Job Listings for <span className="text-indigo-700">{skillName}</span>
+        Job Listings for <span className="text-indigo-700">{skillName || "Unknown Skill"}</span>
       </h1>
 
       {jobs.length > 0 ? (
@@ -86,9 +85,7 @@ const Viewjob = () => {
                   <p><strong>Amount:</strong> <span className="text-green-600">${job.amount}</span></p>
                   <p><strong>Duration:</strong> {job.duration}</p>
                 </div>
-                <Button className="mt-4 w-full bg-indigo-700 text-white hover:bg-indigo-800 transition">
-                  Apply Now
-                </Button>
+                <Button className="mt-4 w-full bg-indigo-700 text-white hover:bg-indigo-800 transition">Apply Now</Button>
               </CardContent>
             </Card>
           ))}
