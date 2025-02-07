@@ -48,7 +48,7 @@ export function DataTable({ columns, data }) {
   return (
     <div className="mx-10">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Contracts</h1>
+        <h1 className="text-2xl font-bold mb-4">Contracts</h1>
         <div className="flex w-1/4 mb-4">
           <Input placeholder="Search..." />
         </div>
@@ -196,11 +196,6 @@ function Contracts() {
                 <PaginationLink
                   href="#"
                   onClick={() => setCurrentPage(pageIndex + 1)}
-                  className={`${
-                    pageIndex + 1 === currentPage
-                      ? "bg-indigo-700 text-white"
-                      : ""
-                  }`}
                 >
                   {pageIndex + 1}
                 </PaginationLink>

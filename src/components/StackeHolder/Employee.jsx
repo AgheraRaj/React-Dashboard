@@ -371,7 +371,7 @@ function Employee() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button onClick={handleAdd}>Add Employee</Button>
+          <Button className=" bg-white text-black border border-black rounded hover:bg-black hover:text-white" onClick={handleAdd}>Add Employee</Button>
         </div>
       </div>
 

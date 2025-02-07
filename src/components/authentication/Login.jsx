@@ -10,12 +10,11 @@ import {
 } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Eye, EyeOff } from "lucide-react"; // Import eye icons from Lucide React
-
+import { Eye, EyeOff } from "lucide-react"; 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false); 
   const navigate = useNavigate();
   const url = import.meta.env.VITE_API_URL;
 
@@ -86,9 +85,9 @@ function Login() {
               onClick={() => setShowPassword((prev) => !prev)} // Toggle password visibility
             >
               {showPassword ? (
-                <EyeOff size={20} className="text-black" /> 
-              ) : (
                 <Eye size={20} className="text-black" /> 
+              ) : (
+                <EyeOff size={20} className="text-black" /> 
               )}
             </button>
           </div>
@@ -96,7 +95,7 @@ function Login() {
 
         {/* Card Footer */}
         <CardFooter className="flex justify-center">
-          <Button onClick={handleLogin} className="w-full">
+          <Button onClick={handleLogin} className="w-full  bg-white text-black border border-black rounded hover:bg-black hover:text-white">
             Login
           </Button>
         </CardFooter>

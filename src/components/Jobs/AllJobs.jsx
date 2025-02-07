@@ -48,7 +48,7 @@ const getColumns = (handleEdit, handleDelete) => [
           {skills.map((skill, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium"
+              className="px-2 py-1 bg-gray-100 rounded-md text-sm font-medium"
             >
               {skill}
             </span>
@@ -154,7 +154,6 @@ export function DataTable({
                   <TableCell>
                     {editingRowId === row.original.id && (
                       <Button
-                        className="bg-indigo-700 text-white"
                         onClick={handleSave}
                         size="sm"
                       >
@@ -332,7 +331,7 @@ function AllJobs() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-4 mx-10">
-        <h1 className="text-2xl font-bold mb-4 text-indigo-700">All Jobs</h1>
+        <h1 className="text-2xl font-bold mb-4">All Jobs</h1>
         <Input
           className="w-72"
           placeholder="Search..."
@@ -366,11 +365,6 @@ function AllJobs() {
                   <PaginationItem key={pageIndex}>
                     <PaginationLink
                       onClick={() => setCurrentPage(pageIndex + 1)}
-                      className={
-                        pageIndex + 1 === currentPage
-                          ? "bg-indigo-700 text-white"
-                          : ""
-                      }
                     >
                       {pageIndex + 1}
                     </PaginationLink>

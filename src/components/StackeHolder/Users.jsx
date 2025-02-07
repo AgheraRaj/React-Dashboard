@@ -126,7 +126,7 @@ export function DataTable({
                     const isEditing = editingRowId === row.original.id;
                     return (
                       <TableCell key={cell.id}>
-                        {isEditing && columnId !== "no" && columnId !== "actions" && columnId !== "status" ? (
+                        {isEditing && columnId !== "no" && columnId !== "actions" && columnId !== "status" && columnId !== "viewprofile" ? (
                           <Input
                             type="text"
                             value={formData[columnId] || ""}
@@ -142,7 +142,6 @@ export function DataTable({
                   <TableCell>
                     {editingRowId === row.original.id && (
                       <Button
-                        className="bg-indigo-700 text-white"
                         onClick={handleSave}
                         size="sm"
                       >
@@ -309,7 +308,7 @@ function Users() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-4 mx-10">
-        <h1 className="text-2xl font-bold mb-4 text-indigo-700">Users</h1>
+        <h1 className="text-2xl font-bold mb-4">Users</h1>
         <Input
           className="w-72"
           placeholder="Search..."
@@ -343,11 +342,6 @@ function Users() {
                   <PaginationItem key={pageIndex}>
                     <PaginationLink
                       onClick={() => setCurrentPage(pageIndex + 1)}
-                      className={
-                        pageIndex + 1 === currentPage
-                          ? "bg-indigo-700 text-white"
-                          : ""
-                      }
                     >
                       {pageIndex + 1}
                     </PaginationLink>

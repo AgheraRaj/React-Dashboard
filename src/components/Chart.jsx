@@ -59,8 +59,8 @@ export const data = {
         10000, 12000, 15000, 12000, 14000, 20000, 12000, 14000, 17000, 30000,
         12000, 4000,
       ],
-      borderColor: "#312E81",
-      backgroundColor: "#4338CA",
+      borderColor: "#000000",
+      backgroundColor: "bg-gray-100",
     },
   ],
 };

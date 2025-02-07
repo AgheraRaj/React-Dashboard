@@ -69,7 +69,7 @@ const Viewjob = () => {
   return (
     <div className="max-w-6xl mx-auto my-10 p-6 h-screen">
       <h1 className="text-2xl font-semibold text-gray-800 text-center">
-        Job Listings for <span className="text-indigo-700">{skillName || "Unknown Skill"}</span>
+        Job Listings for <span>{skillName || "Unknown Skill"}</span>
       </h1>
 
       {jobs.length > 0 ? (
@@ -77,7 +77,7 @@ const Viewjob = () => {
           {jobs.map((job, index) => (
             <Card key={index} className="bg-gray-50 border border-gray-200 shadow-md hover:shadow-lg transition-all">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-indigo-700">{job.title}</CardTitle>
+                <CardTitle className="text-lg font-bold">{job.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">{job.description}</p>
@@ -85,7 +85,7 @@ const Viewjob = () => {
                   <p><strong>Amount:</strong> <span className="text-green-600">${job.amount}</span></p>
                   <p><strong>Duration:</strong> {job.duration}</p>
                 </div>
-                <Button className="mt-4 w-full bg-indigo-700 text-white hover:bg-indigo-800 transition">Apply Now</Button>
+                <Button className="mt-4 w-full  bg-white text-black border border-black rounded hover:bg-black hover:text-white">Apply Now</Button>
               </CardContent>
             </Card>
           ))}

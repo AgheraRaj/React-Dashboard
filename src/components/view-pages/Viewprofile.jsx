@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Pencil, CheckCircle, XCircle } from "lucide-react";
 
 const Viewprofile = () => {
   const [user, setUser] = useState(null);
@@ -8,24 +10,21 @@ const Viewprofile = () => {
   const [status, setStatus] = useState(null);
   const [showReasonInput, setShowReasonInput] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-
   const location = useLocation();
   const username = location.state?.username || null;
   const url = import.meta.env.VITE_API_URL;
 
+  // Ref for rejection input container
+  const rejectionInputRef = useRef(null);
+
   useEffect(() => {
     if (!username) return;
-
     const fetchUserData = async () => {
-
       setLoading(true);
       setError(null);
-
-
       try {
         const token = sessionStorage.getItem("jwtToken");
         if (!token) throw new Error("No token found. Please login again.");
-
         const response = await fetch(
           `${url}/user_api/getUserByUsername/${username}`,
           {
@@ -36,9 +35,7 @@ const Viewprofile = () => {
             },
           }
         );
-
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
         const data = await response.json();
         setUser(data);
         setStatus(data.status);
@@ -48,29 +45,39 @@ const Viewprofile = () => {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, [username]);
+
+  // Handle clicking outside the rejection input field
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        rejectionInputRef.current &&
+        !rejectionInputRef.current.contains(event.target)
+      ) {
+        setShowReasonInput(false); // Hide the rejection input field
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleAcception = async () => {
     try {
       const token = sessionStorage.getItem("jwtToken");
       if (!token) throw new Error("No token found. Please login again.");
-
-      const response = await fetch(
-        `${url}/user_api/accept/${username}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: "Accepted✅" }),
-        }
-      );
-
+      const response = await fetch(`${url}/user_api/accept/${username}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "Accepted✅" }),
+      });
       if (!response.ok) throw new Error("Failed to accept");
-
       const result = await response.json();
       setStatus(result.status);
     } catch (error) {
@@ -86,21 +93,15 @@ const Viewprofile = () => {
     try {
       const token = sessionStorage.getItem("jwtToken");
       if (!token) throw new Error("No token found. Please login again.");
-
-      const response = await fetch(
-        `${url}/user_api/reject/${username}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: rejectionReason
-        }
-      );
-
+      const response = await fetch(`${url}/user_api/reject/${username}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rejectionReason }),
+      });
       if (!response.ok) throw new Error("Failed to reject");
-
       const result = await response.json();
       setStatus(result.status);
       setShowReasonInput(false);
@@ -124,25 +125,97 @@ const Viewprofile = () => {
     );
 
   return (
-    <div className="max-w-2xl mx-auto my-20 p-10 bg-white border border-gray-200 rounded-lg shadow-md text-center">
-      <img src={user?.profilePicture || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAM1BMVEXk5ueutLeqsbTn6eqpr7PJzc/j5ebf4eLZ3N2wtrnBxsjN0NLGysy6v8HT1tissra8wMNxTKO9AAAFDklEQVR4nO2d3XqDIAxAlfivoO//tEOZWzvbVTEpic252W3PF0gAIcsyRVEURVEURVEURVEURVEURVEURVEURVEURVEURflgAFL/AirAqzXO9R7XNBVcy9TbuMHmxjN6lr92cNVVLKEurVfK/zCORVvW8iUBnC02dj+Wpu0z0Y6QlaN5phcwZqjkOkK5HZyPAjkIjSO4fIdfcOwFKkJlX4zPu7Ha1tIcwR3wWxyFhRG6g4Je0YpSPDJCV8a2Sv2zd1O1x/2WMDZCwljH+clRrHfWCLGK8REMiql//2si5+DKWKcWeAGcFMzzNrXC/0TUwQ2s6+LhlcwjTMlYsUIQzPOCb7YBiyHopyLXIEKPEkI/TgeuiidK/R9FniUDOjRDpvm0RhqjMyyXNjDhCfIMYl1gGjIMIuYsnGEYRMRZOMMunaLVwpWRW008v6fYKDIzxCwVAeNSO90BJW6emelYBRF/kHpYGVaoxTDAaxOFsfP9y8hpJ4xd7gOcij7JNGQ1EYFgkPJa1jQEiYZXRaRINKxSDUW9n+FT82lSKadkiru9/4XPqSLWOekGPoY05TAvLm9orm+YWuwHoBHkZKijNBJGmeb61eL6Ff/6q7bLr7yvv3vKGhpDRjvgjGaPz+gUg6YgcvpyAR2FIZ9U6nEEyZRTovmEU32KichpGn7C17XrfyH9gK/c0CMP05HZIM2uf9sEveizKveBy9/6Qt7o89ne33D525cfcIMW6ab+TMEukQbQbu+xu7X3A9bChmWaCeAkG17bpntwXgWxHaMzGPmUaR5dQZiKqRVeUZ3047fi3nAu28h4CHxCsZAgmEH8Y27jJAhm8c+5RQzRQNVGhVFSfxOYIjp/pP7RxzjevYXVGf4eLt+BJ1vCuLuLkrgABgCGXZ2wik5uty+oBvNirI6mkzhAf4Gsb58Hcm67Jzd+KwD10BYPLL3e0MjvKrgAULnOfveF/O4N2Xb9BZom3gJes3F9X5Zze8/6Yt09b4CrqsEjUv8oFBaR2rl+6CZr2xVrp24o/WitBKuGrrpl1+bFkmK2qXTON4VpbdfLa7o7y/WdLxG7lm2Lqh2clOwTegbvc/vj2U78CwhA87Bn8G5Nk3eOb0Nsr9flz3sG78UUtue4kpv1xvjg3TMay62BMlTlP+vrOMnJsRmt/ze0jsfkPPYdAH57hK+34PeOyc8XIXu5xT2HsUkdZz+adwg8HGFfQ3K5jtDvbUiO4Di9/ywHGrL88pDizZ++oTp+an+SMX/ndymUCwmHMdO7yuOx83pUx/eEMU0AvxWndwgidAqOZ8ypCwdEfvvEo6D9HwpA8wzvmOJEqAg9ySu8g4x0Hb9hSB/BANEKJ+LbPBU0lzbAJs4xt1AoshKkUGQmiH8/jJ0gdhTTLmSegHlPE0oOdXALnqDjKYh3px//fSgSWG8UqfrrIICzYYSJXRr9BSPbpNzw7gBjKjKOYI7ReIGqQRIap5+5MdjyvuDkExvGeXSlONWZAP3/AZBwJohU7QJRGU+cTVH18ELmRPNBmibW6MT/k1b0XhdkRBvyT6SB6EYv/GvhSmRNpGngRULsAlxMCGNXp7w3FfdEbTEEDdLI9TdIKRUzUesa3I461ER8cpNT7gMRhpKmYVS9ELOgCUQsa4SsulciKiLbY+AnHD8cpuhISsnxpamI84sbDq9qYJgf8wiiOBrC7Ml7M7ZECCqKoiiKoiiKoiiKoijv5AvJxlZRyNWWLwAAAABJRU5ErkJggg=="} alt="Profile" className="w-24 h-24 mx-auto rounded-full" />
-      <div className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-800">{user?.username}</h2>
-        <p className="text-sm text-gray-600 mt-2"><strong>Role:</strong> {user?.role}</p>
-        <p className="text-sm text-gray-600"><strong>Email:</strong> {user?.email}</p>
-        <p className="text-sm text-gray-600"><strong>Phone:</strong> {user?.phone}</p>
-        <p className="text-sm text-gray-600"><strong>About:</strong> {user?.about}</p>
-        <p className="text-sm text-gray-600"><strong>Status:</strong> {status || "Pending..."}</p>
-        <div className="flex flex-wrap justify-center gap-3 mt-6">
-          <button className="px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800 transition">Edit Profile</button>
-          <button onClick={handleAcception} className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 transition">Accept</button>
-          <button onClick={handleRejection} className="px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800 transition">Reject</button>
+    <div className="max-w-4xl mx-auto my-20 p-8 bg-white border border-gray-200 rounded-lg shadow-md">
+      {/* Profile Header */}
+      <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
+        <img
+          src={user?.profilePicture || "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg"}
+          alt="Profile"
+          className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+        />
+        <div className="text-left">
+          <h2 className="text-3xl font-bold text-gray-800">{`${user?.firstName || ""} ${user?.lastName || ""}`}</h2>
+          <p className="text-sm text-gray-600 mt-2"><strong>Status:</strong> {status || "Pending..."}</p>
+          <div className="flex gap-3 mt-4">
+            <Button
+              className="px-4 py-2 flex items-center gap-2 bg-white text-black border border-black rounded hover:bg-black hover:text-white transition"
+            >
+              <Pencil size={18} />
+              Edit Profile
+            </Button>
+            {status !== "Accepted✅" && (
+              <>
+                <Button
+                  onClick={handleAcception}
+                  className="px-4 py-2 flex items-center gap-2 bg-green-700 text-white rounded hover:bg-green-800 transition"
+                >
+                  <CheckCircle size={18} />
+                  Accept
+                </Button>
+                <Button
+                  onClick={handleRejection}
+                  className="px-4 py-2 flex items-center gap-2 bg-red-700 text-white rounded hover:bg-red-800 transition"
+                >
+                  <XCircle size={18} />
+                  Reject
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Profile Sections */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Personal Information */}
+        <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Personal Information</h3>
+          <p className="text-sm text-gray-600"><strong>Name:</strong> {`${user?.firstName || ""} ${user?.lastName || ""}`}</p>
+          <p className="text-sm text-gray-600"><strong>Email:</strong> {user?.email || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Phone:</strong> {user?.phone || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Address:</strong> {user?.profile?.address || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>City:</strong> {user?.profile?.city || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>State:</strong> {user?.profile?.state || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Country:</strong> {user?.profile?.country || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Zip Code:</strong> {user?.profile?.zipCode || "N/A"}</p>
+        </div>
+
+        {/* Professional Information */}
+        <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Professional Information</h3>
+          <p className="text-sm text-gray-600"><strong>Skills:</strong> {user?.skills?.join(", ") || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Experience:</strong> {user?.profile?.experience || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Certifications:</strong> {user?.profile?.certification || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>Education:</strong> {user?.profile?.education || "N/A"}</p>
+          <p className="text-sm text-gray-600"><strong>About:</strong> {user?.description || "N/A"}</p>
+        </div>
+      </div>
+
+      {/* Bank Details */}
+      <div className="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Bank Details</h3>
+        <p className="text-sm text-gray-600"><strong>Account Holder Name:</strong> {user?.profile?.bank?.accountHolderName || "N/A"}</p>
+        <p className="text-sm text-gray-600"><strong>Account Number:</strong> {user?.profile?.bank?.accountNumber || "N/A"}</p>
+        <p className="text-sm text-gray-600"><strong>IFSC Code:</strong> {user?.profile?.bank?.ifscCode || "N/A"}</p>
+        <p className="text-sm text-gray-600"><strong>Bank Name:</strong> {user?.profile?.bank?.bankName || "N/A"}</p>
+      </div>
+
+      {/* Rejection Reason Input */}
       {showReasonInput && (
-        <div className="mt-8">
-          <textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Enter reason for rejection" className="w-full border border-gray-300 rounded-lg p-2"></textarea>
-          <button onClick={submitRejectionReason} className="mt-4 px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800 transition">Submit Reason</button>
+        <div ref={rejectionInputRef} className="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Reason for Rejection</h3>
+          <textarea
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Enter reason for rejection"
+            className="w-full border border-gray-300 rounded-lg p-2 mb-4"
+          ></textarea>
+          <Button
+            onClick={submitRejectionReason}
+            className="px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800 transition"
+          >
+            Submit Reason
+          </Button>
         </div>
       )}
     </div>
