@@ -85,9 +85,9 @@ function Login() {
               onClick={() => setShowPassword((prev) => !prev)} // Toggle password visibility
             >
               {showPassword ? (
-                <Eye size={20} className="text-black" /> 
-              ) : (
                 <EyeOff size={20} className="text-black" /> 
+              ) : (
+                <Eye size={20} className="text-black" /> 
               )}
             </button>
           </div>
