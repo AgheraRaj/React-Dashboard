@@ -1,11 +1,9 @@
 "use client";
-
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -16,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-
 import {
   Pagination,
   PaginationContent,
@@ -26,6 +23,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useLocation } from "react-router-dom";
 
 export const columns = [
   {
@@ -33,15 +31,11 @@ export const columns = [
     header: "No.",
   },
   {
-    accessorKey: "jobtitle",
-    header: "Job Title",
-  },
-  {
-    accessorKey: "freelancername",
+    accessorKey: "freelancerName",
     header: "Freelancer Name",
   },
   {
-    accessorKey: "freelanceremail",
+    accessorKey: "freelancerEmail",
     header: "Freelancer Email",
   },
   {
@@ -49,16 +43,20 @@ export const columns = [
     header: "Bid",
   },
   {
-    accessorKey: "finishingtime",
+    accessorKey: "finishingTime",
     header: "Finishing Time",
+    cell: ({ getValue }) => {
+      const timestamp = getValue();
+      return new Date(timestamp).toLocaleDateString(); // Format date
+    },
   },
   {
     accessorKey: "review",
-    header: "Review",
-  }
+    header: "Rating",
+  },
 ];
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, title }) {
   const table = useReactTable({
     data,
     columns,
@@ -67,11 +65,8 @@ export function DataTable({ columns, data }) {
 
   return (
     <div className="mx-10">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-4">Proposals</h1>
-        <div className="flex w-1/4 mb-4">
-          <Input placeholder="Search..." />
-        </div>
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-2xl font-bold">Proposals for Job: {title}</h1>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -110,10 +105,7 @@ export function DataTable({ columns, data }) {
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -125,80 +117,41 @@ export function DataTable({ columns, data }) {
   );
 }
 
-function Proposals() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+function ProposalsDetails() {
+  const location = useLocation();
+  const { proposals, title } = location.state || {};
+
+  // Validate if proposals and title exist
+  if (!proposals || !title) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
+          ⚠️ No data available. Please navigate from the All Jobs page.
+        </div>
+      </div>
+    );
+  }
 
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
 
-  const paginatedData = data.slice(
+  // Add index to each proposal for the "No." column
+  const indexedProposals = proposals.map((proposal, index) => ({
+    ...proposal,
+    no: index + 1,
+  }));
+
+  // Pagination logic
+  const totalPages = Math.ceil(indexedProposals.length / rowsPerPage);
+  const paginatedProposals = indexedProposals.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
 
-  const url = import.meta.env.VITE_API_URL;
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const token = sessionStorage.getItem("jwtToken"); // Retrieve JWT token
-
-        if (!token) {
-          throw new Error("No token found. Please login again.");
-        }
-        const response = await fetch(`${url}/`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Include JWT token
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const fetchedData = await response.json();
-        const dataWithIndex = fetchedData.map((item, index) => ({
-          ...item,
-          no: index + 1,
-        }));
-
-        setData(dataWithIndex);
-      } catch (error) {
-        console.error("Failed to fetch data:", error.message);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  if (loading)
-    return (
-      <div className="h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-gray-600"></div>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="h-screen flex justify-center items-center">
-        <div className="text-red-700 bg-red-100 px-6 py-3 rounded-lg shadow">
-          ⚠️ Error: {error}
-        </div>
-      </div>
-    );
-
-  const totalPages = Math.ceil(data.length / rowsPerPage);
-
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={paginatedData} />
+      {/* Render the DataTable */}
+      <DataTable columns={columns} data={paginatedProposals} title={title} />
 
       {/* Pagination Component */}
       <div className="flex justify-center mt-6">
@@ -206,7 +159,6 @@ function Proposals() {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                href="#"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               />
@@ -214,8 +166,8 @@ function Proposals() {
             {[...Array(totalPages)].map((_, pageIndex) => (
               <PaginationItem key={pageIndex}>
                 <PaginationLink
-                  href="#"
                   onClick={() => setCurrentPage(pageIndex + 1)}
+                  isActive={currentPage === pageIndex + 1}
                 >
                   {pageIndex + 1}
                 </PaginationLink>
@@ -224,7 +176,6 @@ function Proposals() {
             {totalPages > 5 && <PaginationEllipsis />}
             <PaginationItem>
               <PaginationNext
-                href="#"
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
@@ -238,4 +189,4 @@ function Proposals() {
   );
 }
 
-export default Proposals;
+export default ProposalsDetails;

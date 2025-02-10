@@ -175,6 +175,7 @@ function Skills() {
   const [editingRowId, setEditingRowId] = useState(null);
   const [formData, setFormData] = useState({});
   const navigate = useNavigate();
+  const [newSkill, setNewSkill] = useState("");
   const url = import.meta.env.VITE_API_URL;
 
   const handleEdit = (rowData) => {
@@ -250,6 +251,41 @@ function Skills() {
     }
   };
 
+  const handleAddSkill = async () => {
+    if (!newSkill.trim()) {
+      alert("Skill name cannot be empty.");
+      return;
+    }
+  
+    try {
+      const token = sessionStorage.getItem("jwtToken");
+      if (!token) throw new Error("No token found. Please login again.");
+  
+      const response = await fetch(`${url}/Skills/addskill`, { // Replace with your actual API endpoint
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ skillName: newSkill }), // Send the new skill name in the request body
+      });
+
+      window.location.reload();
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to add skill: ${errorText}`);
+      }
+  
+      const addedSkill = await response.json(); // Assuming the API returns the added skill
+      setData((prevData) => [...prevData, { ...addedSkill, no: prevData.length + 1 }]); // Append the new skill to the data
+      setNewSkill(""); // Clear the input field
+    } catch (error) {
+      console.error("Error adding skill:", error.message);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -281,19 +317,6 @@ function Skills() {
     fetchData();
   }, [url]);
 
-  useEffect(() => {
-    const filtered = searchTerm
-      ? data.filter((job) =>
-        Object.values(job).some((value) =>
-          value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
-      : data;
-
-    setFilteredData(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, data]);
-
   const columns = getColumns(navigate, handleEdit, handleDelete);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const paginatedData = filteredData.slice(
@@ -305,12 +328,20 @@ function Skills() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-4 mx-10">
         <h1 className="text-2xl font-bold mb-4">Skills</h1>
+
+        <div className="flex items-center gap-4 mb-4">
         <Input
-          className="w-72"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          type="text"
+          placeholder="Enter new skill"
+          value={newSkill}
+          onChange={(e) => setNewSkill(e.target.value)}
+          className="w-full border border-gray-300 rounded p-2"
         />
+        <Button onClick={handleAddSkill} className="px-4 py-2 bg-white text-green-700 border border-green-700 rounded hover:bg-green-700 hover:text-white transition">
+          Add Skill
+        </Button>
+      </div>
+
       </div>
       {!loading && !error && (
         <>

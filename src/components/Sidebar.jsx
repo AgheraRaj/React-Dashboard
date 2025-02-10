@@ -39,7 +39,6 @@ const Sidebar = () => {
       path: "#",
       subLinks: [
         { name: "All Jobs", path: "/jobs/alljobs" },
-        { name: "Proposals", path: "/jobs/proposals" },
         { name: "Contracts", path: "/jobs/contracts" },
       ],
     },

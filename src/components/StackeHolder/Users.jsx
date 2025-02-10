@@ -47,7 +47,7 @@ const getColumns = (navigate, handleEdit, handleDelete) => [
       <Button
         onClick={() =>
           navigate(`/StackHolder/users/viewprofile`, {
-            state: { username: row.original.username },
+            state: { username: row.original.username, id: row.original.id },
           })
         }
         variant="primary"

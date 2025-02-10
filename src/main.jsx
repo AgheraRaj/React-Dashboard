@@ -6,7 +6,6 @@ import App from "./App";
 import Login from "./components/authentication/Login";
 import Dashboard from "./components/Dashboard";
 import AllJobs from "./components/Jobs/AllJobs";
-import Proposals from "./components/Jobs/Proposals";
 import Contracts from "./components/Jobs/Contracts";
 import Skills from "./components/Skills";
 import AllTransactions from "./components/Transaction/AllTransactions";
@@ -16,6 +15,7 @@ import Employee from "./components/StackeHolder/Employee";
 import Users from "./components/StackeHolder/Users";
 import Viewjob from "./components/view-pages/Viewjob";
 import Viewprofile from "./components/view-pages/Viewprofile";
+import ProposalsDetails from "./components/view-pages/ProposalsDetails";
 
 let isLoggedIn = sessionStorage.getItem("jwtToken");
 
@@ -26,12 +26,12 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <Dashboard /> },
       { path: "jobs/alljobs", element: <AllJobs /> },
-      { path: "jobs/proposals", element: <Proposals /> },
       { path: "jobs/contracts", element: <Contracts /> },
       {
         path: "skills",
         element: <Skills />,
       },
+      { path: "proposalsdetails", element: <ProposalsDetails/>},
       { path: "skills/viewjob", element: <Viewjob /> }, 
       { path: "transaction/alltransactions", element: <AllTransactions /> },
       { path: "transaction/invoice", element: <Invoice /> },

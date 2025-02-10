@@ -31,10 +31,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
+import { EllipsisVertical, Pencil, Trash2, ClipboardList } from "lucide-react";
 import { Button } from "../ui/button";
 
-const getColumns = (handleEdit, handleDelete) => [
+const getColumns = (handleEdit, handleDelete , navigate) => [
   { accessorKey: "no", header: "No." },
   { accessorKey: "title", header: "Title" },
   { accessorKey: "description", header: "Description" },
@@ -48,7 +48,7 @@ const getColumns = (handleEdit, handleDelete) => [
           {skills.map((skill, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-gray-100 rounded-md text-sm font-medium"
+              className="px-2 py-1 bg-gray-200 rounded-md text-sm font-medium"
             >
               {skill}
             </span>
@@ -66,17 +66,27 @@ const getColumns = (handleEdit, handleDelete) => [
     header: "Actions",
     cell: ({ row }) => (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost">
-            <EllipsisVertical className="h-5 w-5" />
-          </Button>
+        <DropdownMenuTrigger>
+          <EllipsisVertical />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent>
           <DropdownMenuItem onClick={() => handleEdit(row.original)}>
-            <Pencil className="h-4 w-4 mr-2" /> Edit
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
-            <Trash2 className="h-4 w-4 mr-2 text-red-600" /> Delete
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate("/proposalsdetails", {
+                state: { proposals: row.original.proposals, title: row.original.title },
+              })
+            }
+          >
+            <ClipboardList className="mr-2 h-4 w-4" />
+            View Proposals
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -321,7 +331,7 @@ function AllJobs() {
     setCurrentPage(1);
   }, [searchTerm, data]);
 
-  const columns = getColumns(handleEdit, handleDelete);
+  const columns = getColumns(handleEdit, handleDelete , navigate);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * rowsPerPage,
